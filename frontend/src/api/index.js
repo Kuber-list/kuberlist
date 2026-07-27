@@ -1,6 +1,11 @@
 import axios from "axios";
 
-const api = axios.create({ baseURL: "/api" });
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://kuberlist-backend.onrender.com/api";
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+});
 
 api.interceptors.request.use((cfg) => {
   const token = localStorage.getItem("accessToken");
@@ -25,13 +30,9 @@ api.interceptors.response.use(
 
       if (rt) {
         try {
-          const { data } = await axios.post(
-            "/api/auth/refresh",
-
-            {
-              refreshToken: rt,
-            },
-          );
+          const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+            refreshToken: rt,
+          });
 
           localStorage.setItem("accessToken", data.data.accessToken);
 
