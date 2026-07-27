@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "cloudinary": "^2.10.0",
+    "file-type": "^22.0.1"
+  }
+}

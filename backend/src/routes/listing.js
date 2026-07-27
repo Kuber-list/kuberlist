@@ -1,0 +1,13 @@
+import { Router } from 'express';
+import { protect, requireRole } from '../middleware/auth.js';
+import { createListing, getMyListings, getMyListing, updateListing, deleteListing, submitListing, browseListings, getPublicListing } from '../controllers/listing.js';
+const r = Router();
+r.post('/my',           protect, requireRole('CAPITAL_SEEKER'), createListing);
+r.get('/my',            protect, requireRole('CAPITAL_SEEKER'), getMyListings);
+r.get('/my/:id',        protect, requireRole('CAPITAL_SEEKER'), getMyListing);
+r.put('/my/:id',        protect, requireRole('CAPITAL_SEEKER'), updateListing);
+r.delete('/my/:id',     protect, requireRole('CAPITAL_SEEKER'), deleteListing);
+r.post('/my/:id/submit',protect, requireRole('CAPITAL_SEEKER'), submitListing);
+r.get('/',  browseListings);
+r.get('/:id', getPublicListing);
+export default r;

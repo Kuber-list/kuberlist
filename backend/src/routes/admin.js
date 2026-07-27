@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { protect, requireRole } from '../middleware/auth.js';
+import { getMetrics, getUsers, getListings, reviewListing, getAllInterests } from '../controllers/admin.js';
+const r = Router();
+r.use(protect, requireRole('ADMIN'));
+r.get('/metrics',             getMetrics);
+r.get('/users',               getUsers);
+r.get('/listings',            getListings);
+r.patch('/listings/:id/review', reviewListing);
+r.get('/interests',           getAllInterests);
+export default r;

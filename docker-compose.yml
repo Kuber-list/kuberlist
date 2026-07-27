@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: kuberlist2
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - '3001:3001'
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/kuberlist2
+      JWT_SECRET: kuberlist-jwt-secret-change-in-production-min32chars
+      JWT_REFRESH_SECRET: kuberlist-refresh-secret-change-in-production-min32
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      PORT: 3001
+      FRONTEND_URL: http://localhost:5173
+      NODE_ENV: production
+    depends_on:
+      - postgres
+    volumes:
+      - uploads:/app/src/uploads
+
+  frontend:
+    build: ./frontend
+    ports:
+      - '5173:80'
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  uploads:

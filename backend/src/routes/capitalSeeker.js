@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { protect, requireRole } from '../middleware/auth.js';
+import { getProfile, upsertProfile, getDashboard, getPendingInterestCount } from '../controllers/capitalSeeker.js';
+const r = Router();
+r.use(protect, requireRole('CAPITAL_SEEKER'));
+r.get('/profile',   getProfile);
+r.put('/profile',   upsertProfile);
+r.get('/dashboard', getDashboard);
+r.get('/pending-count', getPendingInterestCount);
+export default r;

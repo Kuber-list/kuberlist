@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { protect, requireRole } from '../middleware/auth.js';
+import { getProfile, upsertProfile, getDashboard, saveStartup, getSaved } from '../controllers/investor.js';
+const r = Router();
+r.use(protect, requireRole('INVESTOR'));
+r.get('/profile',  getProfile);
+r.put('/profile',  upsertProfile);
+r.get('/dashboard',getDashboard);
+r.post('/save',    saveStartup);
+r.get('/saved',    getSaved);
+export default r;
