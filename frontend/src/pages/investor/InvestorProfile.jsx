@@ -3,6 +3,7 @@ import { investorAPI, userAPI } from "../../api/index.js";
 import { PageHeader, Alert, Spinner } from "../../components/ui/index.jsx";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { CheckCircle2, ArrowRight } from "lucide-react";
+import { imageUrl } from "../../utils/image";
 const CATEGORIES = [
   "MICRO_INVESTOR",
   "ANGEL",
@@ -131,7 +132,7 @@ export default function InvestorProfile() {
           <div className="relative">
             {user?.profile_image_url ? (
               <img
-                src={`http://localhost:3001${user.profile_image_url}`}
+                src={imageUrl(user.profile_image_url)}
                 alt={user?.name}
                 className="w-16 h-16 rounded-full object-cover border border-gold/30"
               />

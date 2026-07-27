@@ -12,7 +12,7 @@ import { useAuth } from "../../hooks/useAuth.jsx";
 import { diligenceAPI } from "../../api/index.js";
 import { documentAPI } from "../../api/index.js";
 import { Video } from "lucide-react";
-
+import { imageUrl } from "../../utils/image";
 const STAGES = [
   "ACCEPTED",
   "INTRO_CALL",
@@ -323,7 +323,7 @@ export default function ConnectionDetail() {
             <div className="flex-shrink-0">
               {other?.profile_image_url ? (
                 <img
-                  src={`http://localhost:3001${other.profile_image_url}`}
+                  src={imageUrl(other.profile_image_url)}
                   alt={other?.name}
                   className="w-14 h-14 rounded-full object-cover border border-gold/30"
                 />

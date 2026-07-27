@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth.jsx";
 import { useEffect, useState } from "react";
 import { seekerAPI, messageAPI, notificationAPI } from "../api/index.js";
 import { Icons } from "../components/ui/icons";
-
+import { imageUrl } from "../utils/image";
 const SEEKER_NAV = [
   { to: "/seeker", label: "Dashboard", icon: "dashboard", end: true },
   { to: "/seeker/listings", label: "My Listings", icon: "listings" },
@@ -346,7 +346,7 @@ export default function DashboardLayout() {
             <div className="w-8 h-8 flex-shrink-0">
               {user?.profile_image_url ? (
                 <img
-                  src={`http://localhost:3001${user.profile_image_url}`}
+                  src={imageUrl(user.profile_image_url)}
                   alt={user?.name}
                   className="w-8 h-8 rounded-full object-cover border border-gold/40"
                 />

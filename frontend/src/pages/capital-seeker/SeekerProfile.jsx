@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { seekerAPI, userAPI } from "../../api/index.js";
 import { PageHeader, Alert, Spinner } from "../../components/ui/index.jsx";
 import { useAuth } from "../../hooks/useAuth.jsx";
-
+import { imageUrl } from "../../utils/image";
 export default function SeekerProfile() {
   const { user, setUser } = useAuth();
   const [form, setForm] = useState({
@@ -94,7 +94,7 @@ export default function SeekerProfile() {
         <div className="relative">
           {user?.profile_image_url ? (
             <img
-              src={`http://localhost:3001${user.profile_image_url}`}
+              src={imageUrl(user.profile_image_url)}
               alt={user?.name}
               className="w-16 h-16 rounded-full object-cover border border-gold/30"
             />

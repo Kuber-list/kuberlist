@@ -10,7 +10,7 @@ import {
   GradeBadge,
 } from "../../components/ui/index.jsx";
 import { useAuth } from "../../hooks/useAuth.jsx";
-
+import { imageUrl } from "../../utils/image";
 const STAGES = [
   { key: "ACCEPTED", label: "Accepted", color: "#677555" },
   { key: "INTRO_CALL", label: "Intro Call", color: "#022440" },
@@ -143,7 +143,7 @@ export default function Connections() {
                   <div className="w-8 h-8 flex-shrink-0">
                     {other?.profile_image_url ? (
                       <img
-                        src={`http://localhost:3001${other.profile_image_url}`}
+                        src={imageUrl(other.profile_image_url)}
                         alt={other?.name}
                         className="w-8 h-8 rounded-full object-cover border border-gold/40"
                       />
