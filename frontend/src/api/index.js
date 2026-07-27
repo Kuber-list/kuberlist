@@ -195,7 +195,7 @@ export const connectionAPI = {
   getConnection: (id) => api.get(`/connections/${id}`),
 
   updateStage: (id, payload) => api.patch(`/connections/${id}/stage`, payload),
-  getSharedDocuments: (id) => api.get(`/connections/${id}/shared-documents`),
+  getSharedDocuments: (id) => api.get(`/connections/${id}/documents`),
   uploadNDA: (id, formData) =>
     api.post(`/connections/${id}/nda`, formData, {
       headers: {
