@@ -1,6 +1,7 @@
 import prisma from "../utils/prisma.js";
 import { fileTypeFromFile } from "file-type";
 import fs from "fs/promises";
+import cloudinary from "../config/cloudinary.js";
 export const uploadProfileImage = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -21,14 +22,20 @@ export const uploadProfileImage = async (req, res, next) => {
         message: "Invalid image file",
       });
     }
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      folder: "kuberlist/profile-images",
+      resource_type: "image",
+      allowed_formats: ["jpg", "jpeg", "png"],
+    });
+
+    await fs.unlink(req.file.path).catch(() => {});
 
     const user = await prisma.user.update({
       where: {
         id: req.user.id,
       },
       data: {
-        profile_image_url: imageUrl,
+        profile_image_url: uploadResult.secure_url,
       },
     });
 
@@ -39,6 +46,9 @@ export const uploadProfileImage = async (req, res, next) => {
       },
     });
   } catch (err) {
+    if (req.file?.path) {
+      await fs.unlink(req.file.path).catch(() => {});
+    }
     next(err);
   }
 };

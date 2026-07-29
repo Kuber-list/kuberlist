@@ -49,7 +49,20 @@ export const getUsers = async (req, res, next) => {
         skip,
         take: parseInt(limit),
         orderBy: { created_at: "desc" },
-        include: { _count: { select: { listings: true } } },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          is_system: true,
+          profile_image_url: true,
+          created_at: true,
+          _count: {
+            select: {
+              listings: true,
+            },
+          },
+        },
       }),
       prisma.user.count({ where }),
     ]);
