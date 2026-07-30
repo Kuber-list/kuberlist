@@ -85,20 +85,30 @@ const DIMS = [
 ];
 
 const DECISION_STYLES = {
-  STRONG_BUY: {
-    label: "Strong Buy",
+  HIGH_READINESS: {
+    label: "High Readiness",
     color: "#059669",
     bg: "#F0FDF4",
     border: "#86EFAC",
   },
-  INVESTIGATE: {
-    label: "Investigate",
+  HIGH_POTENTIAL: {
+    label: "High Potential",
     color: "#022440",
     bg: "#EFF6FF",
     border: "#93C5FD",
   },
-  WATCH: { label: "Watch", color: "#B45309", bg: "#FFFBEB", border: "#FCD34D" },
-  PASS: { label: "Pass", color: "#DC2626", bg: "#FEF2F2", border: "#FCA5A5" },
+  DEVELOPING: {
+    label: "Developing",
+    color: "#B45309",
+    bg: "#FFFBEB",
+    border: "#FCD34D",
+  },
+  EARLY_STAGE: {
+    label: "Early Stage",
+    color: "#DC2626",
+    bg: "#FEF2F2",
+    border: "#FCA5A5",
+  },
 };
 
 function getCategory(total) {
@@ -217,6 +227,18 @@ export default function ListingScore() {
                     "en-IN",
                   )}
                 </p>
+                <div className="mt-4 pt-3 border-t border-white/10">
+                  <p className="text-[11px] text-white/50 leading-relaxed">
+                    <strong>Disclaimer:</strong> This readiness score is
+                    generated automatically using information provided by the
+                    startup and KuberList's evaluation criteria. It is intended
+                    to assist discovery and comparison only. It does not
+                    constitute investment advice, investment research, or a
+                    recommendation to invest. Investors should conduct their own
+                    independent due diligence before making investment
+                    decisions.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
