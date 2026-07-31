@@ -12,6 +12,7 @@ const SECTORS = [
   "D2C",
   "CleanTech",
   "AI/ML",
+  "DefenceTech",
   "LogiTech",
   "RetailTech",
   "ManufacTech",
