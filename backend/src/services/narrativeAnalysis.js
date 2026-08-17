@@ -26,66 +26,68 @@
 const cap = (v, max) => Math.min(Math.max(v, 0), max);
 
 const FLUFF_WORDS = [
-  'revolutionary',
-  'disruptive',
-  'game changing',
-  'world class',
-  'next generation',
-  'cutting edge',
-  'innovative solution',
-  'best in class',
-  'industry leading',
-  'scalable platform',
-  'transforming the future',
-  'unicorn',
-  'dominant player',
-  'market leader'
+  "revolutionary",
+  "disruptive",
+  "game changing",
+  "world class",
+  "next generation",
+  "cutting edge",
+  "innovative solution",
+  "best in class",
+  "industry leading",
+  "scalable platform",
+  "transforming the future",
+  "unicorn",
+  "dominant player",
+  "market leader",
 ];
 
 const STRONG_BUSINESS_TERMS = [
-  'pilot',
-  'deployment',
-  'contract',
-  'purchase order',
-  'customers',
-  'subscription',
-  'retention',
-  'margin',
-  'integration',
-  'workflow',
-  'compliance',
-  'distribution',
-  'supply chain',
-  'manufacturing',
-  'saas',
-  'b2b',
-  'api',
-  'automation',
-  'enterprise',
-  'recurring revenue'
+  "pilot",
+  "deployment",
+  "contract",
+  "purchase order",
+  "customers",
+  "subscription",
+  "retention",
+  "margin",
+  "integration",
+  "workflow",
+  "compliance",
+  "distribution",
+  "supply chain",
+  "manufacturing",
+  "saas",
+  "b2b",
+  "api",
+  "automation",
+  "enterprise",
+  "recurring revenue",
 ];
 
 const NEGATIVE_PATTERNS = [
-  'guaranteed returns',
-  '100% success',
-  'no competition',
-  'instant growth',
-  'zero risk'
+  "guaranteed returns",
+  "100% success",
+  "no competition",
+  "instant growth",
+  "zero risk",
 ];
 
 /**
  * Detect fluff density
  */
 function detectFluff(text) {
-  let fluffScore = 0;
+  let fluffCount = 0;
 
-  FLUFF_WORDS.forEach(word => {
+  FLUFF_WORDS.forEach((word) => {
     if (text.includes(word)) {
-      fluffScore += 3;
+      fluffCount += 1;
     }
   });
 
-  return fluffScore;
+  // Fluff should be a minor quality correction,
+  // not dominate the narrative score.
+  return Math.min(fluffCount, 3) * 2;
 }
 /**
  * Detect institutional specificity
@@ -101,7 +103,7 @@ function detectSpecificity(text) {
   }
 
   // Strong operational/business terms
-  STRONG_BUSINESS_TERMS.forEach(term => {
+  STRONG_BUSINESS_TERMS.forEach((term) => {
     if (text.includes(term)) {
       score += 1.5;
     }
@@ -118,10 +120,10 @@ function detectClarity(text) {
 
   const words = text.split(/\s+/).length;
   const avgSentenceLength =
-    text.split('.')
-      .map(s => s.trim().split(/\s+/).length)
-      .reduce((a, b) => a + b, 0) /
-    Math.max(text.split('.').length, 1);
+    text
+      .split(".")
+      .map((s) => s.trim().split(/\s+/).length)
+      .reduce((a, b) => a + b, 0) / Math.max(text.split(".").length, 1);
 
   // Minimum useful detail
   if (words >= 40) score += 3;
@@ -149,20 +151,20 @@ function detectOperationalRealism(text) {
   let score = 0;
 
   const realismSignals = [
-    'monthly',
-    'annual',
-    'process',
-    'team',
-    'operations',
-    'clients',
-    'deployment',
-    'implementation',
-    'vendors',
-    'timeline',
-    'distribution'
+    "monthly",
+    "annual",
+    "process",
+    "team",
+    "operations",
+    "clients",
+    "deployment",
+    "implementation",
+    "vendors",
+    "timeline",
+    "distribution",
   ];
 
-  realismSignals.forEach(signal => {
+  realismSignals.forEach((signal) => {
     if (text.includes(signal)) {
       score += 1.5;
     }
@@ -189,7 +191,7 @@ function detectCoherence(text) {
   }
 
   // Suspicious hype patterns
-  NEGATIVE_PATTERNS.forEach(pattern => {
+  NEGATIVE_PATTERNS.forEach((pattern) => {
     if (text.includes(pattern)) {
       score -= 3;
     }
@@ -208,7 +210,7 @@ function detectCoherence(text) {
 function detectNarrativeRisk(text) {
   let risk = 0;
 
-  NEGATIVE_PATTERNS.forEach(pattern => {
+  NEGATIVE_PATTERNS.forEach((pattern) => {
     if (text.includes(pattern)) {
       risk += 4;
     }
@@ -217,7 +219,6 @@ function detectNarrativeRisk(text) {
   return cap(risk, 10);
 }
 function detectContradictions(text, listing = {}) {
-
   const contradictions = [];
 
   const rev = listing.revenue_last_year || 0;
@@ -225,34 +226,26 @@ function detectContradictions(text, listing = {}) {
   // Profitability contradiction
   if (
     rev === 0 &&
-    (
-      text.includes('profitable') ||
-      text.includes('profitability')
-    )
+    (text.includes("profitable") || text.includes("profitability"))
   ) {
-    contradictions.push('Claims profitability despite zero revenue');
+    contradictions.push("Claims profitability despite zero revenue");
   }
 
   // Scale contradiction
   if (
     !listing.has_purchase_orders &&
-    (
-      text.includes('enterprise scale') ||
-      text.includes('large scale deployment')
-    )
+    (text.includes("enterprise scale") ||
+      text.includes("large scale deployment"))
   ) {
-    contradictions.push('Large-scale claims without operational proof');
+    contradictions.push("Large-scale claims without operational proof");
   }
 
   // Market leadership contradiction
   if (
     rev < 100000 &&
-    (
-      text.includes('market leader') ||
-      text.includes('industry leader')
-    )
+    (text.includes("market leader") || text.includes("industry leader"))
   ) {
-    contradictions.push('Leadership claims unsupported by traction');
+    contradictions.push("Leadership claims unsupported by traction");
   }
 
   return contradictions;
@@ -261,8 +254,7 @@ function detectContradictions(text, listing = {}) {
 /**
  * Main Narrative Analysis
  */
-export function analyzeNarrative(summary = '', listing = {}) {
-
+export function analyzeNarrative(summary = "", listing = {}) {
   const text = summary.toLowerCase().trim();
 
   if (!text || text.length < 30) {
@@ -275,12 +267,12 @@ export function analyzeNarrative(summary = '', listing = {}) {
         specificity: 0,
         coherence: 0,
         operational_realism: 0,
-        fluff_penalty: 0
+        fluff_penalty: 0,
       },
 
       contradictions: [],
 
-      insights: ['Summary too short']
+      insights: ["Summary too short"],
     };
   }
 
@@ -299,11 +291,7 @@ export function analyzeNarrative(summary = '', listing = {}) {
   const contradictions = detectContradictions(text, listing);
 
   let narrativeScore =
-    clarity +
-    specificity +
-    coherence +
-    operationalRealism -
-    fluffPenalty;
+    clarity + specificity + coherence + operationalRealism - fluffPenalty;
 
   // contradiction penalties
   narrativeScore -= contradictions.length * 3;
@@ -313,46 +301,44 @@ export function analyzeNarrative(summary = '', listing = {}) {
   const insights = [];
 
   if (specificity >= 7) {
-    insights.push('Strong operational specificity');
+    insights.push("Strong operational specificity");
   }
 
   if (clarity >= 7) {
-    insights.push('Clear institutional communication');
+    insights.push("Clear institutional communication");
   }
 
   if (operationalRealism >= 6) {
-    insights.push('Operationally realistic narrative');
+    insights.push("Operationally realistic narrative");
   }
 
   if (fluffPenalty >= 6) {
-    insights.push('Excessive buzzword density');
+    insights.push("Excessive buzzword density");
   }
 
   if (narrativeRisk >= 5) {
-    insights.push('Contains high-risk narrative claims');
+    insights.push("Contains high-risk narrative claims");
   }
 
-  contradictions.forEach(c => {
+  contradictions.forEach((c) => {
     insights.push(c);
   });
 
   return {
     narrative_score: narrativeScore,
 
-    narrative_risk: narrativeRisk +
-
-      contradictions.length * 2,
+    narrative_risk: narrativeRisk + contradictions.length * 2,
 
     breakdown: {
       clarity,
       specificity,
       coherence,
       operational_realism: operationalRealism,
-      fluff_penalty: fluffPenalty
+      fluff_penalty: fluffPenalty,
     },
 
     contradictions,
 
-    insights
+    insights,
   };
 }
