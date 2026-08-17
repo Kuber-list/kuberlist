@@ -9,7 +9,9 @@
  *   total_score      — final blended score
  *
  * Formula:
- *   raw = (0.7 * quality * confidence/100) - (0.3 * risk) + momentum
+ *  // NEW
+let raw =quality * (0.5 + 0.5 * (confidence_score / 100)) -
+  0.3 * risk_score;
  *   if hard_score < 35: raw *= (hard_score / 35)   ← smooth suppression
  *
  * Signal ownership (no double-counting):
@@ -518,7 +520,8 @@ export function scoreListing(
   );
 
   // 1. Calculate base score WITHOUT momentum
-  let raw = 0.7 * quality * (confidence_score / 100) - 0.3 * risk_score;
+  // NEW
+  let raw = quality * (0.5 + 0.5 * (confidence_score / 100)) - 0.3 * risk_score;
 
   if (hard_score < 35) {
     raw *= hard_score / 35;
