@@ -363,24 +363,63 @@ export default function ListingScore() {
                   delay={i * 100}
                 />
                 {score[dim.key] < dim.max * 0.7 && (
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <p className="text-xs text-muted font-semibold mb-1.5 uppercase tracking-wider">
-                      How to improve:
-                    </p>
-                    <ul className="space-y-1">
-                      {dim.tips.map((tip) => (
-                        <li
-                          key={tip}
-                          className="text-xs text-muted flex items-start gap-1.5"
-                        >
-                          <span className="text-gold mt-0.5 flex-shrink-0">
-                            →
-                          </span>
-                          {tip}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <>
+                    {dim.tips.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <p className="text-xs text-muted font-semibold mb-1.5 uppercase tracking-wider">
+                          How to improve:
+                        </p>
+
+                        <ul className="space-y-1">
+                          {dim.tips.map((tip) => (
+                            <li
+                              key={tip}
+                              className="text-xs text-muted flex items-start gap-1.5"
+                            >
+                              <span className="text-gold mt-0.5 flex-shrink-0">
+                                →
+                              </span>
+                              {tip}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {score.improvements?.filter(
+                      (imp) => imp.dimension === dim.key,
+                    ).length > 0 && (
+                      <div
+                        className={
+                          dim.tips.length > 0
+                            ? "mt-2"
+                            : "mt-3 pt-3 border-t border-border"
+                        }
+                      >
+                        {dim.tips.length === 0 && (
+                          <p className="text-xs text-muted font-semibold mb-1.5 uppercase tracking-wider">
+                            How to improve:
+                          </p>
+                        )}
+
+                        <ul className="space-y-1">
+                          {score.improvements
+                            .filter((imp) => imp.dimension === dim.key)
+                            .map((imp) => (
+                              <li
+                                key={imp.action}
+                                className="text-xs text-muted flex items-start gap-1.5"
+                              >
+                                <span className="text-gold mt-0.5 flex-shrink-0">
+                                  →
+                                </span>
+                                {imp.action}
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}
