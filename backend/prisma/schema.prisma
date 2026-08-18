@@ -80,31 +80,32 @@ enum StorageProvider {
 }
 
 model User {
-  id                   String                @id @default(uuid())
-  name                 String
-  email                String                @unique
-  password_hash        String
-  role                 Role
-  is_system            Boolean               @default(false)
-  created_at           DateTime              @default(now())
-  updated_at           DateTime              @updatedAt
-  is_active            Boolean               @default(true)
-  capitalSeekerProfile CapitalSeekerProfile?
-  investorProfile      InvestorProfile?
-  listings             StartupListing[]
-  sentInterests        Interest[]            @relation("InvestorInterests")
-  savedStartups        SavedStartup[]
-  refreshTokens        RefreshToken[]
-  investorConnections  Connection[]          @relation("InvestorConnections")
-  seekerConnections    Connection[]          @relation("SeekerConnections")
-  investments          Investment[]          @relation("InvestorInvestments")
-  sentMessages         Message[]
-  documentAccessLogs   DocumentAccessLog[]
-  activities           Activity[]
-  notifications        Notification[]
-  diligence_requests   DiligenceRequest[]
-  profile_image_url    String?
-  shared_documents     SharedDocument[]
+  id                     String                 @id @default(uuid())
+  name                   String
+  email                  String                 @unique
+  password_hash          String
+  role                   Role
+  is_system              Boolean                @default(false)
+  created_at             DateTime               @default(now())
+  updated_at             DateTime               @updatedAt
+  is_active              Boolean                @default(true)
+  capitalSeekerProfile   CapitalSeekerProfile?
+  investorProfile        InvestorProfile?
+  listings               StartupListing[]
+  sentInterests          Interest[]             @relation("InvestorInterests")
+  savedStartups          SavedStartup[]
+  refreshTokens          RefreshToken[]
+  investorConnections    Connection[]           @relation("InvestorConnections")
+  seekerConnections      Connection[]           @relation("SeekerConnections")
+  investments            Investment[]           @relation("InvestorInvestments")
+  external_organizations ExternalOrganization[] @relation("InvestorExternalOrganizations")
+  sentMessages           Message[]
+  documentAccessLogs     DocumentAccessLog[]
+  activities             Activity[]
+  notifications          Notification[]
+  diligence_requests     DiligenceRequest[]
+  profile_image_url      String?
+  shared_documents       SharedDocument[]
 }
 
 model RefreshToken {
@@ -409,8 +410,13 @@ model Investment {
   investor_id String
   investor    User   @relation("InvestorInvestments", fields: [investor_id], references: [id], onDelete: Cascade)
 
-  listing_id String
-  listing    StartupListing @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  // KuberList organization
+  listing_id String?
+  listing    StartupListing? @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+
+  // External organization
+  external_organization_id String?
+  external_organization    ExternalOrganization? @relation(fields: [external_organization_id], references: [id], onDelete: Cascade)
 
   connection_id String?     @unique
   connection    Connection? @relation(fields: [connection_id], references: [id], onDelete: SetNull)
@@ -437,7 +443,28 @@ model Investment {
 
   @@index([investor_id])
   @@index([listing_id])
+  @@index([external_organization_id])
   @@index([status])
+}
+
+model ExternalOrganization {
+  id String @id @default(uuid())
+
+  investor_id String
+  investor    User   @relation("InvestorExternalOrganizations", fields: [investor_id], references: [id], onDelete: Cascade)
+
+  name        String
+  website     String?
+  sector      String?
+  country     String?
+  description String?
+
+  investments Investment[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([investor_id])
 }
 
 model CompanyValuation {
