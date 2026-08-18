@@ -73,21 +73,22 @@ enum VerificationStatus {
   THIRD_PARTY_VERIFIED
   KUBERLIST_REVIEWED
 }
+
 enum StorageProvider {
   LOCAL
   CLOUDINARY
 }
 
 model User {
-  id            String   @id @default(uuid())
-  name          String
-  email         String   @unique
-  password_hash String
-  role          Role
-  is_system     Boolean  @default(false)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-is_active Boolean @default(true)
+  id                   String                @id @default(uuid())
+  name                 String
+  email                String                @unique
+  password_hash        String
+  role                 Role
+  is_system            Boolean               @default(false)
+  created_at           DateTime              @default(now())
+  updated_at           DateTime              @updatedAt
+  is_active            Boolean               @default(true)
   capitalSeekerProfile CapitalSeekerProfile?
   investorProfile      InvestorProfile?
   listings             StartupListing[]
@@ -96,6 +97,7 @@ is_active Boolean @default(true)
   refreshTokens        RefreshToken[]
   investorConnections  Connection[]          @relation("InvestorConnections")
   seekerConnections    Connection[]          @relation("SeekerConnections")
+  investments          Investment[]          @relation("InvestorInvestments")
   sentMessages         Message[]
   documentAccessLogs   DocumentAccessLog[]
   activities           Activity[]
@@ -108,11 +110,12 @@ is_active Boolean @default(true)
 model RefreshToken {
   id         String   @id @default(uuid())
   token      String   @unique
-  @@index([user_id])
   user_id    String
   user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   expires_at DateTime
   created_at DateTime @default(now())
+
+  @@index([user_id])
 }
 
 model CapitalSeekerProfile {
@@ -192,25 +195,27 @@ model StartupListing {
   score                     ListingScore?
   connections               Connection[]
   diligence_requests        DiligenceRequest[]
+  investments               Investment[]
+  valuations                CompanyValuation[]
 }
 
 model Document {
-  id                  String             @id @default(uuid())
-  startup_id          String
-  startup             StartupListing     @relation(fields: [startup_id], references: [id], onDelete: Cascade)
-  file_name           String
- storage_provider StorageProvider @default(LOCAL)
-file_url String
-public_id String?
+  id               String          @id @default(uuid())
+  startup_id       String
+  startup          StartupListing  @relation(fields: [startup_id], references: [id], onDelete: Cascade)
+  file_name        String
+  storage_provider StorageProvider @default(LOCAL)
+  file_url         String
+  public_id        String?
 
-mime_type String
+  mime_type String
 
-original_file_name String?
+  original_file_name String?
 
-storage_path String?
+  storage_path        String?
   file_size           Int?
   document_type       DocumentType       @default(OTHER)
-  visibility DocumentVisibility @default(INTERESTED_ONLY)
+  visibility          DocumentVisibility @default(INTERESTED_ONLY)
   verification_status VerificationStatus @default(UPLOADED)
   verified_by         String?
   verified_at         DateTime?
@@ -218,13 +223,12 @@ storage_path String?
   uploaded_at         DateTime           @default(now())
   diligence_responses DiligenceRequest[]
   shared_connections  SharedDocument[]
+
   @@index([startup_id])
-
-@@index([visibility])
-@@index([startup_id, visibility])
-@@index([uploaded_at])
-
-@@index([document_type])
+  @@index([visibility])
+  @@index([startup_id, visibility])
+  @@index([uploaded_at])
+  @@index([document_type])
 }
 
 model DiligenceRequest {
@@ -340,6 +344,21 @@ enum ConnectionStatus {
   CLOSED
 }
 
+enum InvestmentStatus {
+  ACTIVE
+  EXITED
+  WRITTEN_OFF
+}
+
+enum InvestmentInstrument {
+  EQUITY
+  SAFE
+  CONVERTIBLE_NOTE
+  DEBT
+  REVENUE_BASED_FINANCING
+  OTHER
+}
+
 model Connection {
   id           String           @id @default(uuid())
   listing_id   String
@@ -379,8 +398,65 @@ model Connection {
   stage_updated_at   DateTime         @default(now())
   stage_history      Json? // [{stage, changed_at, changed_by}]
   shared_documents   SharedDocument[]
+  investment         Investment?
 
   @@unique([investor_id, listing_id])
+}
+
+model Investment {
+  id String @id @default(uuid())
+
+  investor_id String
+  investor    User   @relation("InvestorInvestments", fields: [investor_id], references: [id], onDelete: Cascade)
+
+  listing_id String
+  listing    StartupListing @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+
+  connection_id String?     @unique
+  connection    Connection? @relation(fields: [connection_id], references: [id], onDelete: SetNull)
+
+  invested_amount Float
+  invested_at     DateTime
+
+  instrument InvestmentInstrument @default(EQUITY)
+
+  entry_valuation      Float?
+  ownership_percentage Float?
+
+  status InvestmentStatus @default(ACTIVE)
+
+  current_value_override Float?
+
+  exit_value Float?
+  exited_at  DateTime?
+
+  notes String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([investor_id])
+  @@index([listing_id])
+  @@index([status])
+}
+
+model CompanyValuation {
+  id String @id @default(uuid())
+
+  listing_id String
+  listing    StartupListing @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+
+  valuation      Float
+  valuation_date DateTime
+
+  source String?
+  notes  String?
+
+  created_at DateTime @default(now())
+
+  @@unique([listing_id, valuation_date])
+  @@index([listing_id])
+  @@index([valuation_date])
 }
 
 model Message {
@@ -405,13 +481,11 @@ model DocumentAccessLog {
   investor    User     @relation(fields: [investor_id], references: [id], onDelete: Cascade)
   startup_id  String
   viewed_at   DateTime @default(now())
+
   @@index([startup_id])
-
-@@index([investor_id])
-
-@@index([document_id])
-
-@@index([viewed_at])
+  @@index([investor_id])
+  @@index([document_id])
+  @@index([viewed_at])
 }
 
 model Activity {
