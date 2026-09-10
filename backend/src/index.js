@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import diligenceRoutes from "./routes/diligence.js";
+import dueDiligenceRoutes from "./routes/dueDiligence.js";
 
 import authRoutes from "./routes/auth.js";
 import capitalSeekerRoutes from "./routes/capitalSeeker.js";
@@ -24,6 +25,9 @@ import notificationRoutes from "./routes/notification.js";
 import activityRoutes from "./routes/activity.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import userRoutes from "./routes/user.js";
+import portfolioRoutes from "./routes/portfolio.js";
+import secondaryOpportunityRoutes from "./routes/secondaryOpportunity.js";
+import secondaryDealRoutes from "./routes/secondaryDeal.js";
 import compression from "compression";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -120,6 +124,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/capital-seeker", capitalSeekerRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api/investor", investorRoutes);
+app.use("/api/portfolio", portfolioRoutes);
+app.use("/api/secondary-opportunities", secondaryOpportunityRoutes);
+app.use("/api/secondary-deals", secondaryDealRoutes);
 app.use("/api/interest", interestRoutes);
 app.use("/api/document", documentRoutes);
 app.use("/api/update", updateRoutes);
@@ -130,6 +137,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/diligence", diligenceRoutes);
+app.use("/api/due-diligence", dueDiligenceRoutes);
 app.use("/api/user", userRoutes);
 app.use((req, res) =>
   res

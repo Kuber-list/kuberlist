@@ -51,15 +51,14 @@ import {
   Clock3,
   Lock,
   FileCheck,
-LockKeyhole,
-Bookmark,
-AlertCircle,
-EyeOff,
-Send,
-Sparkles,
- ChevronLeft
-
-
+  LockKeyhole,
+  Bookmark,
+  AlertCircle,
+  EyeOff,
+  Send,
+  Sparkles,
+  PieChart,
+  ChevronLeft,
 } from "lucide-react";
 export const Icons = {
   dashboard: LayoutDashboard,
@@ -114,5 +113,7 @@ export const Icons = {
   profile: User,
   discover: Search,
   saved: Star,
-  interests: Inbox
+  portfolio: PieChart,
+  secondary: Handshake,
+  interests: Inbox,
 };

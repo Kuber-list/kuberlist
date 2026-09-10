@@ -21,6 +21,7 @@ import ScoresHub from "./pages/capital-seeker/ScoresHub.jsx";
 import AccessLogs from "./pages/capital-seeker/AccessLogs.jsx";
 import Connections from "./pages/shared/Connections.jsx";
 import ConnectionDetail from "./pages/shared/ConnectionDetail.jsx";
+import DueDiligence from "./pages/shared/DueDiligence.jsx";
 
 import InvestorDashboard from "./pages/investor/InvestorDashboard.jsx";
 import Discover from "./pages/investor/Discover.jsx";
@@ -29,13 +30,18 @@ import ListingDetailInv from "./pages/investor/ListingDetail.jsx";
 import SavedDeals from "./pages/investor/SavedDeals.jsx";
 import SentInterests from "./pages/investor/SentInterests.jsx";
 import InvestorProfile from "./pages/investor/InvestorProfile.jsx";
+import Portfolio from "./pages/investor/Portfolio.jsx";
+import SecondaryOpportunities from "./pages/investor/SecondaryOpportunities.jsx";
+import MySecondaryOpportunities from "./pages/investor/MySecondaryOpportunities.jsx";
+import SecondaryDeals from "./pages/investor/SecondaryDeals.jsx";
+import SecondaryDealDetail from "./pages/investor/SecondaryDealDetail.jsx";
 
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminListings from "./pages/admin/AdminListings.jsx";
 import AdminUsers from "./pages/admin/AdminUsers.jsx";
 import AdminInterests from "./pages/admin/AdminInterests.jsx";
-
 import AdminReviewCenter from "./pages/admin/AdminReviewCenter.jsx";
+import AdminSecondaryOpportunities from "./pages/admin/AdminSecondaryOpportunities.jsx";
 
 function RequireAuth({ children, role, roles }) {
   const { user, loading } = useAuth();
@@ -127,6 +133,19 @@ function AppRoutes() {
         <Route path="listings/:id/report" element={<ListingReport />} />
         <Route path="saved" element={<SavedDeals />} />
         <Route path="interests" element={<SentInterests />} />
+        <Route path="portfolio" element={<Portfolio />} />
+        <Route
+          path="secondary-opportunities"
+          element={<SecondaryOpportunities />}
+        />
+
+        <Route
+          path="my-secondary-opportunities"
+          element={<MySecondaryOpportunities />}
+        />
+        <Route path="secondary-deals" element={<SecondaryDeals />} />
+        <Route path="secondary-deals/:id" element={<SecondaryDealDetail />} />
+
         <Route path="profile" element={<InvestorProfile />} />
       </Route>
 
@@ -141,6 +160,7 @@ function AppRoutes() {
       >
         <Route index element={<Connections />} />
         <Route path=":id" element={<ConnectionDetail />} />
+        <Route path=":id/due-diligence" element={<DueDiligence />} />
       </Route>
 
       <Route
@@ -156,6 +176,10 @@ function AppRoutes() {
         <Route path="users" element={<AdminUsers />} />
         <Route path="interests" element={<AdminInterests />} />
         <Route path="review-center" element={<AdminReviewCenter />} />
+        <Route
+          path="secondary-opportunities"
+          element={<AdminSecondaryOpportunities />}
+        />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

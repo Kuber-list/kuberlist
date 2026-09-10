@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import prisma from "../utils/prisma.js";
 import {
   signAccessToken,
@@ -8,10 +9,22 @@ import {
 import { createError } from "../middleware/errorHandler.js";
 
 const issueTokens = async (user) => {
-  const payload = { id: user.id, role: user.role };
-  const accessToken = signAccessToken(payload);
-  const refreshToken = signRefreshToken(payload);
+  const accessPayload = {
+    id: user.id,
+    role: user.role,
+  };
+
+  const refreshPayload = {
+    id: user.id,
+    role: user.role,
+    jti: crypto.randomUUID(),
+  };
+
+  const accessToken = signAccessToken(accessPayload);
+  const refreshToken = signRefreshToken(refreshPayload);
+
   const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
   await prisma.refreshToken.deleteMany({
     where: {
       user_id: user.id,
@@ -20,12 +33,20 @@ const issueTokens = async (user) => {
       },
     },
   });
-  await prisma.refreshToken.create({
-    data: { token: refreshToken, user_id: user.id, expires_at },
-  });
-  return { accessToken, refreshToken };
-};
 
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      user_id: user.id,
+      expires_at,
+    },
+  });
+
+  return {
+    accessToken,
+    refreshToken,
+  };
+};
 export const register = async (req, res, next) => {
   try {
     const { name, email, password, role } = req.body;

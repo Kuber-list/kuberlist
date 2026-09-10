@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export const Spinner = ({ size = "md", className = "" }) => {
   const s = { sm: "w-4 h-4", md: "w-5 h-5", lg: "w-8 h-8" };
@@ -73,7 +74,10 @@ export const Modal = ({
   maxWidth = "max-w-lg",
 }) => {
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
+    if (open) {
+      document.body.style.overflow = "hidden";
+    }
+
     return () => {
       document.body.style.overflow = "";
     };
@@ -81,36 +85,38 @@ export const Modal = ({
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div
-          className="fixed inset-0 bg-navy/40 backdrop-blur-sm anim-in"
-          onClick={onClose}
-        />
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Background overlay */}
+      <div
+        className="absolute inset-0 bg-navy/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
-        <div
-          className={`relative bg-white border border-border w-full ${maxWidth} max-h-[90vh] overflow-hidden anim-up shadow-modal rounded-lg`}
-        >
-          <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-            <h3 className="font-display text-xl font-semibold text-navy">
-              {title}
-            </h3>
+      {/* Modal */}
+      <div
+        className={`relative z-10 flex w-full ${maxWidth} max-h-[90vh] flex-col overflow-hidden rounded-lg border border-border bg-white shadow-modal anim-up`}
+      >
+        {/* Header */}
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-6 py-5">
+          <h3 className="font-display text-xl font-semibold text-navy">
+            {title}
+          </h3>
 
-            <button
-              onClick={onClose}
-              className="text-muted hover:text-navy text-lg leading-none ml-4"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-            {children}
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-4 text-lg leading-none text-muted hover:text-navy"
+          >
+            ✕
+          </button>
         </div>
+
+        {/* Scrollable modal content */}
+        <div className="flex-1 overflow-y-auto p-6">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 export const Pagination = ({ page, pages, onPageChange }) => {

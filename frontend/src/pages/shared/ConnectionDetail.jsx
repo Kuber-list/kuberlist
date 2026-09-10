@@ -351,36 +351,46 @@ export default function ConnectionDetail() {
               </div>
             </div>
           </div>
-          {!isSeeker && (
-            <button
-              onClick={() => setRequestModal(true)}
-              className="
-  bg-amber-500
-  hover:bg-amber-600
-  text-white
-  px-4 py-2
-  rounded-xl
-  text-sm
-  font-medium
-  transition
-"
+          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+            <Link
+              to={`/connections/${id}/due-diligence`}
+              className="btn-navy btn-sm"
             >
-              Request Document
-            </button>
-          )}
-          {/* Stage badge */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs text-muted">Stage:</span>
-            <span
-              className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider border"
-              style={{
-                color: STAGE_COLORS[conn.deal_stage],
-                borderColor: STAGE_COLORS[conn.deal_stage],
-                background: `${STAGE_COLORS[conn.deal_stage]}12`,
-              }}
-            >
-              {STAGE_LABELS[conn.deal_stage]}
-            </span>
+              Due Diligence →
+            </Link>
+
+            {!isSeeker && (
+              <button
+                onClick={() => setRequestModal(true)}
+                className="
+        bg-amber-500
+        hover:bg-amber-600
+        text-white
+        px-4 py-2
+        rounded-xl
+        text-sm
+        font-medium
+        transition
+      "
+              >
+                Request Document
+              </button>
+            )}
+
+            <div className="flex items-center gap-2 ml-2">
+              <span className="text-xs text-muted">Stage:</span>
+
+              <span
+                className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider border"
+                style={{
+                  color: STAGE_COLORS[conn.deal_stage],
+                  borderColor: STAGE_COLORS[conn.deal_stage],
+                  background: `${STAGE_COLORS[conn.deal_stage]}12`,
+                }}
+              >
+                {STAGE_LABELS[conn.deal_stage]}
+              </span>
+            </div>
           </div>
         </div>
 

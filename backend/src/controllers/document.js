@@ -487,12 +487,9 @@ export const verifyDocument = async (req, res, next) => {
 
       data: {
         verification_status: status,
-
-        verification_notes: notes || "",
-
-        verified_by: req.user.id,
-
-        verified_at: new Date(),
+        verification_notes: status === "UPLOADED" ? "" : notes || "",
+        verified_by: status === "UPLOADED" ? null : req.user.id,
+        verified_at: status === "UPLOADED" ? null : new Date(),
       },
     });
 

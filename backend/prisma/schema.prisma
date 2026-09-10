@@ -80,32 +80,40 @@ enum StorageProvider {
 }
 
 model User {
-  id                     String                 @id @default(uuid())
-  name                   String
-  email                  String                 @unique
-  password_hash          String
-  role                   Role
-  is_system              Boolean                @default(false)
-  created_at             DateTime               @default(now())
-  updated_at             DateTime               @updatedAt
-  is_active              Boolean                @default(true)
-  capitalSeekerProfile   CapitalSeekerProfile?
-  investorProfile        InvestorProfile?
-  listings               StartupListing[]
-  sentInterests          Interest[]             @relation("InvestorInterests")
-  savedStartups          SavedStartup[]
-  refreshTokens          RefreshToken[]
-  investorConnections    Connection[]           @relation("InvestorConnections")
-  seekerConnections      Connection[]           @relation("SeekerConnections")
-  investments            Investment[]           @relation("InvestorInvestments")
-  external_organizations ExternalOrganization[] @relation("InvestorExternalOrganizations")
-  sentMessages           Message[]
-  documentAccessLogs     DocumentAccessLog[]
-  activities             Activity[]
-  notifications          Notification[]
-  diligence_requests     DiligenceRequest[]
-  profile_image_url      String?
-  shared_documents       SharedDocument[]
+  id                                   String                         @id @default(uuid())
+  name                                 String
+  email                                String                         @unique
+  password_hash                        String
+  role                                 Role
+  is_system                            Boolean                        @default(false)
+  created_at                           DateTime                       @default(now())
+  updated_at                           DateTime                       @updatedAt
+  is_active                            Boolean                        @default(true)
+  capitalSeekerProfile                 CapitalSeekerProfile?
+  investorProfile                      InvestorProfile?
+  listings                             StartupListing[]
+  sentInterests                        Interest[]                     @relation("InvestorInterests")
+  savedStartups                        SavedStartup[]
+  refreshTokens                        RefreshToken[]
+  investorConnections                  Connection[]                   @relation("InvestorConnections")
+  seekerConnections                    Connection[]                   @relation("SeekerConnections")
+  investments                          Investment[]                   @relation("InvestorInvestments")
+  external_organizations               ExternalOrganization[]         @relation("InvestorExternalOrganizations")
+  sentMessages                         Message[]
+  documentAccessLogs                   DocumentAccessLog[]
+  activities                           Activity[]
+  notifications                        Notification[]
+  diligence_requests                   DiligenceRequest[]
+  profile_image_url                    String?
+  shared_documents                     SharedDocument[]
+  secondary_opportunities              SecondaryOpportunity[]         @relation("SecondaryOpportunitySeller")
+  secondary_interests                  SecondaryInterest[]            @relation("SecondaryOpportunityInvestor")
+  secondary_deals_as_seller            SecondaryDeal[]                @relation("SecondaryDealSeller")
+  secondary_deals_as_buyer             SecondaryDeal[]                @relation("SecondaryDealBuyer")
+  secondary_messages                   SecondaryMessage[]
+  secondary_deal_documents             SecondaryDealDocument[]        @relation("SecondaryDealDocumentUploader")
+  secondary_document_requests_made     SecondaryDealDocumentRequest[] @relation("SecondaryDealDocumentRequester")
+  secondary_document_requests_received SecondaryDealDocumentRequest[] @relation("SecondaryDealDocumentRequestedFrom")
 }
 
 model RefreshToken {
@@ -156,39 +164,39 @@ model InvestorProfile {
 }
 
 model StartupListing {
-  id                        String             @id @default(uuid())
+  id                        String                 @id @default(uuid())
   capital_seeker_id         String
-  capital_seeker            User               @relation(fields: [capital_seeker_id], references: [id], onDelete: Cascade)
+  capital_seeker            User                   @relation(fields: [capital_seeker_id], references: [id], onDelete: Cascade)
   name                      String
   sector                    String
   stage                     String
-  entity_type               EntityType         @default(STARTUP)
+  entity_type               EntityType             @default(STARTUP)
   location_city             String?
-  location_country          String             @default("India")
+  location_country          String                 @default("India")
   funding_ask               Float?
   valuation_expectation     Float?
   revenue_last_year         Float?
   monthly_burn              Float?
   summary                   String
   use_of_funds              String?
-  is_active                 Boolean            @default(true)
-  status                    ListingStatus      @default(DRAFT)
+  is_active                 Boolean                @default(true)
+  status                    ListingStatus          @default(DRAFT)
   rejection_reason          String?
-  view_count                Int                @default(0)
+  view_count                Int                    @default(0)
   // Traction & Credibility fields
-  has_purchase_orders       Boolean            @default(false)
+  has_purchase_orders       Boolean                @default(false)
   po_value                  Float?
   po_count                  Int?
-  has_government_contract   Boolean            @default(false)
-  has_ip                    Boolean            @default(false)
+  has_government_contract   Boolean                @default(false)
+  has_ip                    Boolean                @default(false)
   ip_description            String?
   awards_recognition        String?
   government_contract_proof String?
   patent_number             String?
   accelerator_name          String?
-  created_at                DateTime           @default(now())
-  updated_at                DateTime           @updatedAt
-  requires_nda              Boolean            @default(false)
+  created_at                DateTime               @default(now())
+  updated_at                DateTime               @updatedAt
+  requires_nda              Boolean                @default(false)
   interests                 Interest[]
   savedBy                   SavedStartup[]
   documents                 Document[]
@@ -197,6 +205,7 @@ model StartupListing {
   connections               Connection[]
   diligence_requests        DiligenceRequest[]
   investments               Investment[]
+  secondary_opportunities   SecondaryOpportunity[] @relation("SecondaryOpportunityListing")
   valuations                CompanyValuation[]
 }
 
@@ -224,6 +233,7 @@ model Document {
   uploaded_at         DateTime           @default(now())
   diligence_responses DiligenceRequest[]
   shared_connections  SharedDocument[]
+  dd_requirements     DDRequirement[]
 
   @@index([startup_id])
   @@index([visibility])
@@ -256,6 +266,8 @@ model DiligenceRequest {
   investor User @relation(fields: [investor_id], references: [id])
 
   response_document Document? @relation(fields: [response_document_id], references: [id])
+
+  dd_requirement DDRequirement?
 }
 
 enum DiligenceRequestStatus {
@@ -263,6 +275,144 @@ enum DiligenceRequestStatus {
   UPLOADED
   UNDER_REVIEW
   COMPLETED
+}
+
+model DDChecklistTemplate {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  entity_type EntityType @default(STARTUP)
+  is_active   Boolean    @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  items          DDChecklistItem[]
+  due_diligences DueDiligence[]
+}
+
+model DDChecklistItem {
+  id String @id @default(uuid())
+
+  template_id String
+  template    DDChecklistTemplate @relation(fields: [template_id], references: [id], onDelete: Cascade)
+
+  category    DDCategory
+  title       String
+  description String?
+  required    Boolean    @default(true)
+  sort_order  Int        @default(0)
+
+  requirements DDRequirement[]
+
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+  weight        Int             @default(1)
+  applicability DDApplicability @default(CORE)
+
+  @@index([template_id])
+  @@index([category])
+}
+
+model DueDiligence {
+  id String @id @default(uuid())
+
+  connection_id String     @unique
+  connection    Connection @relation(fields: [connection_id], references: [id], onDelete: Cascade)
+
+  template_id String?
+  template    DDChecklistTemplate? @relation(fields: [template_id], references: [id], onDelete: SetNull)
+
+  status DueDiligenceStatus @default(NOT_STARTED)
+
+  readiness_score Int @default(0)
+
+  verification_score Int @default(0)
+
+  started_at   DateTime?
+  completed_at DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  requirements DDRequirement[]
+
+  @@index([status])
+}
+
+model DDRequirement {
+  id               String       @id @default(uuid())
+  due_diligence_id String
+  due_diligence    DueDiligence @relation(fields: [due_diligence_id], references: [id], onDelete: Cascade)
+
+  checklist_item_id String
+  checklist_item    DDChecklistItem @relation(fields: [checklist_item_id], references: [id], onDelete: Restrict)
+
+  status DDRequirementStatus @default(MISSING)
+
+  verification_level DDVerificationLevel @default(NONE)
+
+  document_id String?
+  document    Document? @relation(fields: [document_id], references: [id], onDelete: SetNull)
+
+  diligence_request_id String?           @unique
+  diligence_request    DiligenceRequest? @relation(fields: [diligence_request_id], references: [id], onDelete: SetNull)
+
+  verification_notes String?
+  verified_by        String?
+  verified_at        DateTime?
+
+  notes String?
+
+  completed_at DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([due_diligence_id])
+  @@index([checklist_item_id])
+  @@index([status])
+  @@index([verification_level])
+  @@index([document_id])
+}
+
+enum DueDiligenceStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  READY_FOR_REVIEW
+  COMPLETED
+}
+
+enum DDRequirementStatus {
+  MISSING
+  REQUESTED
+  UPLOADED
+  UNDER_REVIEW
+  VERIFIED
+  NOT_APPLICABLE
+}
+
+enum DDVerificationLevel {
+  NONE
+  UPLOADED
+  KUBERLIST_VERIFIED
+  THIRD_PARTY_VERIFIED
+}
+
+enum DDCategory {
+  CORPORATE
+  FINANCIAL
+  OWNERSHIP
+  LEGAL
+  TAX
+  COMMERCIAL
+  BUSINESS
+  OTHER
+}
+
+enum DDApplicability {
+  CORE
+  IF_APPLICABLE
 }
 
 model Interest {
@@ -360,6 +510,43 @@ enum InvestmentInstrument {
   OTHER
 }
 
+enum SecondaryOpportunityStatus {
+  DRAFT
+  PENDING_REVIEW
+  LIVE
+  IN_DISCUSSION
+  COMPLETED
+  WITHDRAWN
+  EXPIRED
+  REJECTED
+}
+
+enum SecondarySaleType {
+  FULL
+  PARTIAL
+}
+
+enum PriceVisibility {
+  PUBLIC
+  ON_REQUEST
+}
+
+enum SecondaryInterestStatus {
+  EXPRESSED
+  APPROVED
+  DECLINED
+  WITHDRAWN
+}
+
+enum SecondaryDealStatus {
+  IN_DISCUSSION
+  NEGOTIATING
+  AGREED
+  COMPLETED
+  FAILED
+  WITHDRAWN
+}
+
 model Connection {
   id           String           @id @default(uuid())
   listing_id   String
@@ -400,6 +587,7 @@ model Connection {
   stage_history      Json? // [{stage, changed_at, changed_by}]
   shared_documents   SharedDocument[]
   investment         Investment?
+  due_diligence      DueDiligence?
 
   @@unique([investor_id, listing_id])
 }
@@ -438,8 +626,9 @@ model Investment {
 
   notes String?
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at              DateTime               @default(now())
+  updated_at              DateTime               @updatedAt
+  secondary_opportunities SecondaryOpportunity[] @relation("InvestmentSecondaryOpportunities")
 
   @@index([investor_id])
   @@index([listing_id])
@@ -459,12 +648,138 @@ model ExternalOrganization {
   country     String?
   description String?
 
-  investments Investment[]
+  investments             Investment[]
+  secondary_opportunities SecondaryOpportunity[] @relation("SecondaryOpportunityExternalOrganization")
+  created_at              DateTime               @default(now())
+  updated_at              DateTime               @updatedAt
+
+  @@index([investor_id])
+}
+
+model SecondaryOpportunity {
+  id String @id @default(uuid())
+
+  seller_id String
+  seller    User   @relation("SecondaryOpportunitySeller", fields: [seller_id], references: [id], onDelete: Cascade)
+
+  investment_id String?
+  investment    Investment? @relation("InvestmentSecondaryOpportunities", fields: [investment_id], references: [id], onDelete: SetNull)
+
+  listing_id String?
+  listing    StartupListing? @relation("SecondaryOpportunityListing", fields: [listing_id], references: [id], onDelete: Cascade)
+
+  external_organization_id String?
+  external_organization    ExternalOrganization? @relation("SecondaryOpportunityExternalOrganization", fields: [external_organization_id], references: [id], onDelete: Cascade)
+
+  instrument InvestmentInstrument
+  sale_type  SecondarySaleType
+
+  ownership_percentage Float?
+  stake_description    String?
+
+  asking_price             Float
+  price_visibility         PriceVisibility @default(PUBLIC)
+  minimum_transaction_size Float?
+
+  expires_at DateTime?
+  notes      String?
+
+  status           SecondaryOpportunityStatus @default(DRAFT)
+  rejection_reason String?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  interests SecondaryInterest[]
+  deals     SecondaryDeal[]
+
+  @@index([seller_id])
+  @@index([investment_id])
+  @@index([listing_id])
+  @@index([external_organization_id])
+  @@index([status])
+  @@index([expires_at])
+}
+
+model SecondaryInterest {
+  id String @id @default(uuid())
+
+  opportunity_id String
+  opportunity    SecondaryOpportunity @relation(fields: [opportunity_id], references: [id], onDelete: Cascade)
+
+  investor_id String
+  investor    User   @relation("SecondaryOpportunityInvestor", fields: [investor_id], references: [id], onDelete: Cascade)
+
+  message String?
+  status  SecondaryInterestStatus @default(EXPRESSED)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  deal SecondaryDeal?
+
+  @@unique([opportunity_id, investor_id])
   @@index([investor_id])
+  @@index([status])
+}
+
+model SecondaryDeal {
+  id String @id @default(uuid())
+
+  opportunity_id String
+  opportunity    SecondaryOpportunity @relation(fields: [opportunity_id], references: [id], onDelete: Cascade)
+
+  secondary_interest_id String            @unique
+  secondary_interest    SecondaryInterest @relation(fields: [secondary_interest_id], references: [id], onDelete: Cascade)
+
+  seller_id String
+  seller    User   @relation("SecondaryDealSeller", fields: [seller_id], references: [id], onDelete: Cascade)
+
+  buyer_id String
+  buyer    User   @relation("SecondaryDealBuyer", fields: [buyer_id], references: [id], onDelete: Cascade)
+
+  status SecondaryDealStatus @default(IN_DISCUSSION)
+
+  agreed_price         Float?
+  agreed_stake_details String?
+  outcome_notes        String?
+  completed_at         DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  messages          SecondaryMessage[]
+  documents         SecondaryDealDocument[]
+  document_requests SecondaryDealDocumentRequest[]
+
+  @@index([opportunity_id])
+  @@index([seller_id])
+  @@index([buyer_id])
+  @@index([status])
+}
+
+model SecondaryMessage {
+  id String @id @default(uuid())
+
+  deal_id String
+  deal    SecondaryDeal @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+
+  sender_id String
+  sender    User   @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+
+  message String
+
+  attachments String[] @default([])
+  read_by     String[] @default([])
+
+  is_system    Boolean @default(false)
+  message_type String  @default("TEXT")
+  metadata     Json?
+
+  created_at DateTime @default(now())
+
+  @@index([deal_id])
+  @@index([sender_id])
 }
 
 model CompanyValuation {
@@ -555,4 +870,70 @@ model SharedDocument {
   @@unique([connection_id, document_id])
   @@index([connection_id])
   @@index([document_id])
+}
+
+model SecondaryDealDocument {
+  id String @id @default(uuid())
+
+  deal_id String
+  deal    SecondaryDeal @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+
+  uploaded_by String
+  uploader    User   @relation("SecondaryDealDocumentUploader", fields: [uploaded_by], references: [id], onDelete: Cascade)
+
+  file_name          String
+  original_file_name String?
+
+  storage_provider StorageProvider @default(LOCAL)
+  file_url         String
+  public_id        String?
+
+  mime_type    String
+  storage_path String?
+  file_size    Int?
+
+  document_type DocumentType @default(OTHER)
+
+  uploaded_at       DateTime                       @default(now())
+  document_requests SecondaryDealDocumentRequest[]
+
+  @@index([deal_id])
+  @@index([uploaded_by])
+  @@index([uploaded_at])
+}
+
+model SecondaryDealDocumentRequest {
+  id String @id @default(uuid())
+
+  deal_id String
+  deal    SecondaryDeal @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+
+  requested_by String
+  requester    User   @relation("SecondaryDealDocumentRequester", fields: [requested_by], references: [id], onDelete: Cascade)
+
+  requested_from      String
+  requested_from_user User   @relation("SecondaryDealDocumentRequestedFrom", fields: [requested_from], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+
+  status SecondaryDocumentRequestStatus @default(REQUESTED)
+
+  document_id String?
+  document    SecondaryDealDocument? @relation(fields: [document_id], references: [id], onDelete: SetNull)
+
+  created_at   DateTime  @default(now())
+  completed_at DateTime?
+
+  @@index([deal_id])
+  @@index([requested_by])
+  @@index([requested_from])
+  @@index([status])
+}
+
+enum SecondaryDocumentRequestStatus {
+  REQUESTED
+  FULFILLED
+  DECLINED
+  CANCELLED
 }

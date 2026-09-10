@@ -29,8 +29,28 @@ const SEEKER_NAV = [
 const INVESTOR_NAV = [
   { to: "/investor", label: "Dashboard", icon: "dashboard", end: true },
   { to: "/investor/discover", label: "Discover", icon: "discover" },
+  {
+    to: "/investor/secondary-opportunities",
+    label: "Secondary Opportunities",
+    icon: "secondary",
+  },
+  {
+    to: "/investor/my-secondary-opportunities",
+    label: "My Secondary Opportunities",
+    icon: "portfolio",
+  },
+  {
+    to: "/investor/secondary-deals",
+    label: "Secondary Deals",
+    icon: "secondary",
+  },
   { to: "/investor/saved", label: "Saved Deals", icon: "saved" },
   { to: "/investor/interests", label: "Sent Interests", icon: "interests" },
+  {
+    to: "/investor/portfolio",
+    label: "Portfolio Management",
+    icon: "portfolio",
+  },
   {
     to: "/connections",
     label: "Deal Pipeline",
@@ -46,6 +66,11 @@ const ADMIN_NAV = [
   { to: "/admin/users", label: "Users", icon: "users" },
   { to: "/admin/interests", label: "Interests", icon: "interests" },
   { to: "/admin/review-center", label: "Review Center", icon: "shield" },
+  {
+    to: "/admin/secondary-opportunities",
+    label: "Secondary Opportunities",
+    icon: "briefcase",
+  },
 ];
 
 function Badge({ count }) {

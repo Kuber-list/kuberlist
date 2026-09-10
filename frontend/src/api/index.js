@@ -323,4 +323,120 @@ export const diligenceAPI = {
   complete: (id) => api.patch(`/diligence/${id}/complete`),
 };
 
+// ─────────────────────────────────────────────
+// DUE DILIGENCE
+// ─────────────────────────────────────────────
+
+export const dueDiligenceAPI = {
+  getByConnection: (connectionId) =>
+    api.get(`/due-diligence/connection/${connectionId}`),
+
+  getSummary: (dueDiligenceId) =>
+    api.get(`/due-diligence/${dueDiligenceId}/summary`),
+
+  getCategories: (dueDiligenceId) =>
+    api.get(`/due-diligence/${dueDiligenceId}/categories`),
+
+  recalculate: (dueDiligenceId) =>
+    api.post(`/due-diligence/${dueDiligenceId}/recalculate`),
+};
+// ─────────────────────────────────────────────
+// PORTFOLIO
+// ─────────────────────────────────────────────
+
+export const portfolioAPI = {
+  getAll: () => api.get("/portfolio"),
+
+  getSummary: () => api.get("/portfolio/summary"),
+
+  getOne: (id) => api.get(`/portfolio/${id}`),
+
+  create: (payload) => api.post("/portfolio", payload),
+
+  createExternal: (payload) => api.post("/portfolio/external", payload),
+
+  update: (id, payload) => api.put(`/portfolio/${id}`, payload),
+
+  remove: (id) => api.delete(`/portfolio/${id}`),
+};
+// ─────────────────────────────────────────────
+// SECONDARY OPPORTUNITIES
+// ─────────────────────────────────────────────
+
+export const secondaryOpportunityAPI = {
+  getLive: () => api.get("/secondary-opportunities"),
+  expressInterest: (id, message) =>
+    api.post(`/secondary-opportunities/${id}/interest`, {
+      message,
+    }),
+  getInterests: (id) => api.get(`/secondary-opportunities/${id}/interests`),
+  approveInterest: (opportunityId, interestId) =>
+    api.post(
+      `/secondary-opportunities/${opportunityId}/interests/${interestId}/approve`,
+    ),
+
+  declineInterest: (opportunityId, interestId) =>
+    api.post(
+      `/secondary-opportunities/${opportunityId}/interests/${interestId}/decline`,
+    ),
+  create: (payload) => api.post("/secondary-opportunities", payload),
+
+  getMy: () => api.get("/secondary-opportunities/my"),
+
+  submit: (id) => api.post(`/secondary-opportunities/${id}/submit`),
+
+  getPending: () => api.get("/secondary-opportunities/admin/pending"),
+
+  approve: (id) => api.post(`/secondary-opportunities/${id}/approve`),
+
+  reject: (id, rejection_reason) =>
+    api.post(`/secondary-opportunities/${id}/reject`, {
+      rejection_reason,
+    }),
+};
+export const secondaryDealAPI = {
+  getMy: () => api.get("/secondary-deals/my"),
+
+  getById: (id) => api.get(`/secondary-deals/${id}`),
+
+  getMessages: (id) => api.get(`/secondary-deals/${id}/messages`),
+
+  sendMessage: (id, message) =>
+    api.post(`/secondary-deals/${id}/messages`, {
+      message,
+    }),
+
+  updateStatus: (id, status) =>
+    api.patch(`/secondary-deals/${id}/status`, {
+      status,
+    }),
+
+  // Secondary deal documents
+  getDocuments: (id) => api.get(`/secondary-deals/${id}/documents`),
+
+  uploadDocument: (id, formData) =>
+    api.post(`/secondary-deals/${id}/documents`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+
+  // Secondary deal document requests
+  getDocumentRequests: (id) =>
+    api.get(`/secondary-deals/${id}/document-requests`),
+
+  requestDocument: (id, payload) =>
+    api.post(`/secondary-deals/${id}/document-requests`, payload),
+
+  fulfillDocumentRequest: (id, requestId, formData) =>
+    api.patch(
+      `/secondary-deals/${id}/document-requests/${requestId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    ),
+};
 export default api;
