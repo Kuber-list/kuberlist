@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Notification Service
  * Creates notifications for key platform events
  */
@@ -53,6 +53,9 @@ export const NOTIF_TYPES = {
 
   MESSAGE_RECEIVED:
     'MESSAGE_RECEIVED',
+
+  PORTFOLIO_MESSAGE_RECEIVED:
+    'PORTFOLIO_MESSAGE_RECEIVED',
 
   SCORE_IMPROVED:
     'SCORE_IMPROVED',
@@ -166,6 +169,29 @@ export async function notifyMessageReceived(
   SCORE IMPROVED
 */
 
+/*
+  PORTFOLIO CHAT MESSAGE
+*/
+export async function notifyPortfolioMessageReceived(
+  userId,
+  senderName,
+  listingName,
+  investmentId,
+  recipientRole
+) {
+  const link =
+    recipientRole === "CAPITAL_SEEKER"
+      ? `/seeker/portfolio/${investmentId}`
+      : `/investor/portfolio/${investmentId}`;
+
+  await notify(
+    userId,
+    NOTIF_TYPES.PORTFOLIO_MESSAGE_RECEIVED,
+    'New portfolio message',
+    `${senderName} sent a portfolio message about ${listingName}`,
+    link
+  );
+}
 export async function notifyScoreImproved(
 
   seekerId,
@@ -191,3 +217,4 @@ export async function notifyScoreImproved(
   );
 
 }
+

@@ -79,6 +79,20 @@ enum StorageProvider {
   CLOUDINARY
 }
 
+enum PortfolioMilestoneStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  AT_RISK
+}
+
+enum PortfolioMilestonePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model User {
   id                                   String                         @id @default(uuid())
   name                                 String
@@ -114,6 +128,9 @@ model User {
   secondary_deal_documents             SecondaryDealDocument[]        @relation("SecondaryDealDocumentUploader")
   secondary_document_requests_made     SecondaryDealDocumentRequest[] @relation("SecondaryDealDocumentRequester")
   secondary_document_requests_received SecondaryDealDocumentRequest[] @relation("SecondaryDealDocumentRequestedFrom")
+  portfolio_messages                   PortfolioMessage[]             @relation("PortfolioMessageSender")
+  portfolio_milestones_created         PortfolioMilestone[]           @relation("PortfolioMilestoneCreator")
+  portfolio_documents_added            PortfolioDocument[]            @relation("PortfolioDocumentAddedBy")
 }
 
 model RefreshToken {
@@ -224,16 +241,18 @@ model Document {
 
   storage_path        String?
   file_size           Int?
-  document_type       DocumentType       @default(OTHER)
-  visibility          DocumentVisibility @default(INTERESTED_ONLY)
-  verification_status VerificationStatus @default(UPLOADED)
+  document_type       DocumentType                 @default(OTHER)
+  visibility          DocumentVisibility           @default(INTERESTED_ONLY)
+  verification_status VerificationStatus           @default(UPLOADED)
   verified_by         String?
   verified_at         DateTime?
   verification_notes  String?
-  uploaded_at         DateTime           @default(now())
+  uploaded_at         DateTime                     @default(now())
   diligence_responses DiligenceRequest[]
   shared_connections  SharedDocument[]
   dd_requirements     DDRequirement[]
+  portfolio_documents PortfolioDocument[]
+  milestone_documents PortfolioMilestoneDocument[]
 
   @@index([startup_id])
   @@index([visibility])
@@ -609,6 +628,10 @@ model Investment {
   connection_id String?     @unique
   connection    Connection? @relation(fields: [connection_id], references: [id], onDelete: SetNull)
 
+  portfolio_messages   PortfolioMessage[]
+  portfolio_milestones PortfolioMilestone[]
+  portfolio_documents  PortfolioDocument[]
+
   invested_amount Float
   invested_at     DateTime
 
@@ -929,6 +952,85 @@ model SecondaryDealDocumentRequest {
   @@index([requested_by])
   @@index([requested_from])
   @@index([status])
+}
+
+model PortfolioMessage {
+  id            String     @id @default(uuid())
+  investment_id String
+  investment    Investment @relation(fields: [investment_id], references: [id], onDelete: Cascade)
+
+  sender_id String
+  sender    User   @relation("PortfolioMessageSender", fields: [sender_id], references: [id], onDelete: Cascade)
+
+  message    String
+  created_at DateTime @default(now())
+
+  @@index([investment_id, created_at])
+  @@index([sender_id])
+}
+
+model PortfolioMilestone {
+  id            String     @id @default(uuid())
+  investment_id String
+  investment    Investment @relation(fields: [investment_id], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+
+  created_by String
+  creator    User   @relation("PortfolioMilestoneCreator", fields: [created_by], references: [id], onDelete: Cascade)
+
+  target_date  DateTime?
+  priority     PortfolioMilestonePriority @default(MEDIUM)
+  status       PortfolioMilestoneStatus   @default(NOT_STARTED)
+  progress     Int                        @default(0)
+  completed_at DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  supporting_documents PortfolioMilestoneDocument[]
+
+  @@index([investment_id])
+  @@index([created_by])
+  @@index([status])
+  @@index([target_date])
+}
+
+model PortfolioDocument {
+  id            String     @id @default(uuid())
+  investment_id String
+  investment    Investment @relation(fields: [investment_id], references: [id], onDelete: Cascade)
+
+  document_id String
+  document    Document @relation(fields: [document_id], references: [id], onDelete: Cascade)
+
+  added_by String
+  addedBy  User   @relation("PortfolioDocumentAddedBy", fields: [added_by], references: [id], onDelete: Cascade)
+
+  category   String   @default("GENERAL")
+  created_at DateTime @default(now())
+
+  @@unique([investment_id, document_id])
+  @@index([investment_id])
+  @@index([document_id])
+  @@index([added_by])
+}
+
+model PortfolioMilestoneDocument {
+  id String @id @default(uuid())
+
+  milestone_id String
+  milestone    PortfolioMilestone @relation(fields: [milestone_id], references: [id], onDelete: Cascade)
+
+  document_id String
+  document    Document @relation(fields: [document_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+
+  @@unique([milestone_id, document_id])
+  @@index([milestone_id])
+  @@index([document_id])
 }
 
 enum SecondaryDocumentRequestStatus {

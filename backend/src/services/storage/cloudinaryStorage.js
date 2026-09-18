@@ -53,18 +53,20 @@ class CloudinaryStorage {
    * Generate secure download URL
    */
   getDownloadUrl(document) {
+    if (document?.storage_path) {
+      return document.storage_path;
+    }
+
     if (!document?.public_id) {
       throw new Error("Missing Cloudinary public_id");
     }
 
     return cloudinary.url(document.public_id, {
       resource_type: "raw",
-
       secure: true,
-
-      // sign_url: true,
     });
   }
 }
 
 export default new CloudinaryStorage();
+

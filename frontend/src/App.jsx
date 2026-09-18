@@ -19,6 +19,8 @@ import ListingScore from "./pages/capital-seeker/ListingScore.jsx";
 import ListingReport from "./pages/capital-seeker/ListingReport.jsx";
 import ScoresHub from "./pages/capital-seeker/ScoresHub.jsx";
 import AccessLogs from "./pages/capital-seeker/AccessLogs.jsx";
+import PortfolioInvestmentSeeker from "./pages/capital-seeker/PortfolioInvestment.jsx";
+import PortfolioSeeker from "./pages/capital-seeker/Portfolio.jsx";
 import Connections from "./pages/shared/Connections.jsx";
 import ConnectionDetail from "./pages/shared/ConnectionDetail.jsx";
 import DueDiligence from "./pages/shared/DueDiligence.jsx";
@@ -31,6 +33,7 @@ import SavedDeals from "./pages/investor/SavedDeals.jsx";
 import SentInterests from "./pages/investor/SentInterests.jsx";
 import InvestorProfile from "./pages/investor/InvestorProfile.jsx";
 import Portfolio from "./pages/investor/Portfolio.jsx";
+import PortfolioInvestment from "./pages/investor/PortfolioInvestment.jsx";
 import SecondaryOpportunities from "./pages/investor/SecondaryOpportunities.jsx";
 import MySecondaryOpportunities from "./pages/investor/MySecondaryOpportunities.jsx";
 import SecondaryDeals from "./pages/investor/SecondaryDeals.jsx";
@@ -116,6 +119,8 @@ function AppRoutes() {
         <Route path="updates" element={<PostUpdates />} />
         <Route path="score" element={<ScoresHub />} />
         <Route path="access-logs" element={<AccessLogs />} />
+          <Route path="portfolio" element={<PortfolioSeeker />} />
+          <Route path="portfolio/:investmentId" element={<PortfolioInvestmentSeeker />} />
         <Route path="profile" element={<SeekerProfile />} />
       </Route>
 
@@ -134,6 +139,10 @@ function AppRoutes() {
         <Route path="saved" element={<SavedDeals />} />
         <Route path="interests" element={<SentInterests />} />
         <Route path="portfolio" element={<Portfolio />} />
+          <Route
+            path="portfolio/:investmentId"
+            element={<PortfolioInvestment />}
+          />
         <Route
           path="secondary-opportunities"
           element={<SecondaryOpportunities />}
@@ -194,3 +203,7 @@ export default function App() {
     </AuthProvider>
   );
 }
+
+
+
+

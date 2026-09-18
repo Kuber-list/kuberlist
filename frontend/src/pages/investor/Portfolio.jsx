@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   portfolioAPI,
   secondaryOpportunityAPI,
@@ -141,6 +142,7 @@ function SummaryCard({
 }
 
 export default function Portfolio() {
+  const navigate = useNavigate();
   const [investments, setInvestments] = useState([]);
   const [summary, setSummary] = useState(null);
 
@@ -500,8 +502,7 @@ export default function Portfolio() {
     }
   };
   const handleViewDetails = (investment) => {
-    setSelectedInvestment(investment);
-    setDetailsModal(true);
+    navigate(`/investor/portfolio/${investment.id}`);
   };
 
   const filteredInvestments = useMemo(() => {
@@ -625,7 +626,7 @@ export default function Portfolio() {
               icon={Building2}
               label="Investments"
               value={totalInvestments}
-              description={`${activeInvestments} active · ${
+              description={`${activeInvestments} active Â· ${
                 summary?.exited_investments || 0
               } exited`}
             />
@@ -689,7 +690,7 @@ export default function Portfolio() {
               investments.length === 0 ? (
                 <div className="p-8">
                   <EmptyState
-                    icon="💼"
+                    icon="ðŸ’¼"
                     title="No investments yet"
                     description="Start building your portfolio by adding an investment from KuberList or an external organization."
                     action={
@@ -805,7 +806,7 @@ export default function Portfolio() {
 
                                 <div className="text-xs text-muted mt-1">
                                   {sector}
-                                  {stage ? ` · ${stage}` : ""}
+                                  {stage ? ` Â· ${stage}` : ""}
                                 </div>
 
                                 {investment.notes && (
@@ -835,7 +836,7 @@ export default function Portfolio() {
                                     month: "short",
                                     year: "numeric",
                                   })
-                                : "—"}
+                                : "â€”"}
                             </div>
                           </td>
 
@@ -874,7 +875,7 @@ export default function Portfolio() {
 
                               <span>
                                 {investmentGainLoss === 0
-                                  ? "—"
+                                  ? "â€”"
                                   : `${isPositive ? "+" : ""}${formatINR(
                                       investmentGainLoss,
                                     )}`}
@@ -993,7 +994,7 @@ export default function Portfolio() {
                     {opportunity.sale_type === "FULL"
                       ? "Full Stake"
                       : "Partial Stake"}
-                    {" · "}
+                    {" Â· "}
                     {formatINR(opportunity.asking_price)}
                   </div>
                 </div>
@@ -1170,9 +1171,9 @@ export default function Portfolio() {
                           {listings.map((listing) => (
                             <option key={listing.id} value={listing.id}>
                               {listing.name}
-                              {listing.sector ? ` · ${listing.sector}` : ""}
+                              {listing.sector ? ` Â· ${listing.sector}` : ""}
                               {listing.stage
-                                ? ` · ${listing.stage.replace(/_/g, " ")}`
+                                ? ` Â· ${listing.stage.replace(/_/g, " ")}`
                                 : ""}
                             </option>
                           ))}
@@ -1853,7 +1854,7 @@ export default function Portfolio() {
                       {isNegative && <ArrowDownRight className="w-5 h-5" />}
 
                       {investmentGainLoss === 0
-                        ? "—"
+                        ? "â€”"
                         : `${isPositive ? "+" : ""}${formatINR(
                             investmentGainLoss,
                           )}`}
@@ -1898,7 +1899,7 @@ export default function Portfolio() {
                               month: "long",
                               year: "numeric",
                             })
-                          : "—"}
+                          : "â€”"}
                       </div>
                     </div>
 
@@ -1920,7 +1921,7 @@ export default function Portfolio() {
                       <div className="text-sm font-semibold text-navy mt-1.5">
                         {selectedInvestment.entry_valuation
                           ? formatINR(selectedInvestment.entry_valuation)
-                          : "—"}
+                          : "â€”"}
                       </div>
                     </div>
 
@@ -1933,7 +1934,7 @@ export default function Portfolio() {
                         {selectedInvestment.ownership_percentage !== null &&
                         selectedInvestment.ownership_percentage !== undefined
                           ? `${selectedInvestment.ownership_percentage}%`
-                          : "—"}
+                          : "â€”"}
                       </div>
                     </div>
                   </div>
@@ -1975,7 +1976,7 @@ export default function Portfolio() {
                             <div className="text-sm font-semibold text-navy mt-1.5">
                               {selectedInvestment.exit_value
                                 ? formatINR(selectedInvestment.exit_value)
-                                : "—"}
+                                : "â€”"}
                             </div>
                           </div>
 
@@ -1993,7 +1994,7 @@ export default function Portfolio() {
                                     month: "long",
                                     year: "numeric",
                                   })
-                                : "—"}
+                                : "â€”"}
                             </div>
                           </div>
                         </>
@@ -2051,7 +2052,7 @@ export default function Portfolio() {
                             {company.location_city
                               ? `${company.location_city}, `
                               : ""}
-                            {company.location_country || company.country || "—"}
+                            {company.location_country || company.country || "â€”"}
                           </div>
                         </div>
                       )}
@@ -2385,3 +2386,5 @@ export default function Portfolio() {
     </div>
   );
 }
+
+

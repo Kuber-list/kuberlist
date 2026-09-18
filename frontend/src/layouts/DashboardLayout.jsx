@@ -18,6 +18,11 @@ const SEEKER_NAV = [
   { to: "/seeker/score", label: "Scores & Reports", icon: "scores" },
   { to: "/seeker/access-logs", label: "Doc Access Logs", icon: "logs" },
   {
+    to: "/seeker/portfolio",
+    label: "Portfolio Management",
+    icon: "portfolio",
+  },
+  {
     to: "/connections",
     label: "Deal Pipeline",
     icon: "pipeline",
