@@ -150,6 +150,7 @@ export const getPortfolioSummary = async (req, res, next) => {
 
         if (investment.status === "ACTIVE") {
           acc.active_investments += 1;
+          acc.active_invested += investedAmount;
 
           acc.current_value +=
             investment.current_value_override ?? investedAmount;
@@ -173,13 +174,14 @@ export const getPortfolioSummary = async (req, res, next) => {
         exited_investments: 0,
         written_off_investments: 0,
         total_invested: 0,
+        active_invested: 0,
         current_value: 0,
         realized_value: 0,
       },
     );
 
     summary.unrealized_gain_loss =
-      summary.current_value - summary.total_invested;
+      summary.current_value - summary.active_invested;
 
     res.json({
       success: true,
