@@ -1,7 +1,8 @@
-import { notifyStageChanged } from "../services/notification.service.js";
+﻿import { notifyStageChanged } from "../services/notification.service.js";
 import prisma from "../utils/prisma.js";
 import { createError } from "../middleware/errorHandler.js";
 import { SYSTEM_USER_ID } from "../constants/system.js";
+import storageService from "../services/storage/storage.service.js";
 
 const VALID_STAGES = [
   "ACCEPTED",
@@ -13,7 +14,7 @@ const VALID_STAGES = [
   "DROPPED",
 ];
 
-// ── Internal: create connection when interest is accepted ─────────
+// â”€â”€ Internal: create connection when interest is accepted â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const createConnectionFromInterest = async (interest) => {
   // Prevent duplicate connections
   const existing = await prisma.connection.findUnique({
@@ -52,7 +53,7 @@ export const createConnectionFromInterest = async (interest) => {
       data: {
         connection_id: connection.id,
         sender_id: SYSTEM_USER_ID,
-        message: `Deal started — ${listing.name} connected with investor`,
+        message: `Deal started â€” ${listing.name} connected with investor`,
         is_system: true,
         message_type: "SYSTEM",
         metadata: { event: "CONNECTION_CREATED" },
@@ -66,7 +67,7 @@ export const createConnectionFromInterest = async (interest) => {
   return connection;
 };
 
-// ── PATCH /connections/:id/stage ──────────────────────────────────
+// â”€â”€ PATCH /connections/:id/stage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const updateDealStage = async (req, res, next) => {
   try {
     const {
@@ -185,7 +186,7 @@ export const updateDealStage = async (req, res, next) => {
   }
 };
 
-// ── GET /connections/user/:user_id ────────────────────────────────
+// â”€â”€ GET /connections/user/:user_id â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const getUserConnections = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -240,7 +241,7 @@ export const getUserConnections = async (req, res, next) => {
   }
 };
 
-// ── GET /connections/:id ──────────────────────────────────────────
+// â”€â”€ GET /connections/:id â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const getConnection = async (req, res, next) => {
   try {
     const connection = req.connection; // attached by middleware
@@ -320,14 +321,20 @@ export const uploadNDA = async (req, res, next) => {
       throw createError(400, "Please upload an NDA");
     }
 
+    const storedFile = await storageService.upload(req.file);
+
     const document = await prisma.document.create({
       data: {
         startup_id: connection.listing_id,
-        file_name: req.file.originalname,
-        file_url: `/uploads/${req.file.filename}`,
-        file_size: req.file.size,
+        file_name: storedFile.original_file_name,
+        file_url: storedFile.storage_path,
+        file_size: storedFile.file_size,
         document_type: "NDA",
         visibility: "INTERESTED_ONLY",
+        storage_provider: storedFile.storage_provider,
+        public_id: storedFile.public_id,
+        storage_path: storedFile.storage_path,
+        mime_type: storedFile.mime_type,
       },
     });
 
@@ -403,3 +410,6 @@ export const overrideNDA = async (req, res, next) => {
     next(err);
   }
 };
+
+
+
