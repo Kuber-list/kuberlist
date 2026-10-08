@@ -1,6 +1,7 @@
 import prisma from "../utils/prisma.js";
 import { createError } from "../middleware/errorHandler.js";
 import storageService from "../services/storage/storage.service.js";
+import { validateUploadedFile } from "../utils/fileValidation.js";
 /**
  * GET /api/secondary-deals/my
  * Get all secondary deals for the logged-in seller or buyer
@@ -517,6 +518,14 @@ export const fulfillSecondaryDealDocumentRequest = async (req, res, next) => {
       );
     }
 
+    // Validate the actual file contents before storage.
+    try {
+      await validateUploadedFile(req.file);
+    } catch (error) {
+      await storageService.deleteTempFile(req.file.path);
+      throw error;
+    }
+
     // Upload the file using the same storage system as normal
     // secondary deal documents.
     const uploaded = await storageService.upload(req.file);
@@ -627,8 +636,15 @@ export const createSecondaryDealDocument = async (req, res, next) => {
       throw createError(404, "Secondary deal not found");
     }
 
-    const uploaded = await storageService.upload(req.file);
+    // Validate the actual file contents before storage.
+    try {
+      await validateUploadedFile(req.file);
+    } catch (error) {
+      await storageService.deleteTempFile(req.file.path);
+      throw error;
+    }
 
+    const uploaded = await storageService.upload(req.file);
     const document = await prisma.secondaryDealDocument.create({
       data: {
         deal_id: deal.id,

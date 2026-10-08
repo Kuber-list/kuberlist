@@ -3,57 +3,18 @@ import { createError } from "../middleware/errorHandler.js";
 import storageService from "../services/storage/storage.service.js";
 //import path from "path";
 //import fs from "fs";
-import { fileTypeFromFile } from "file-type";
+import { validateUploadedFile } from "../utils/fileValidation.js";
 export const uploadDocument = async (req, res, next) => {
   try {
     if (!req.file) {
       throw createError(400, "No file uploaded");
     }
 
-    const detectedType = await fileTypeFromFile(req.file.path);
-
-    const allowedMime = [
-      "application/pdf",
-      "image/png",
-      "image/jpeg",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "application/msword",
-      "application/vnd.ms-excel",
-      "application/vnd.ms-powerpoint",
-    ];
-
-    if (!detectedType || !allowedMime.includes(detectedType.mime)) {
+    try {
+      await validateUploadedFile(req.file);
+    } catch (error) {
       await storageService.deleteTempFile(req.file.path);
-
-      throw createError(400, "Invalid file type");
-    }
-
-    const uploadedExt = req.file.originalname
-      .substring(req.file.originalname.lastIndexOf("."))
-      .toLowerCase();
-
-    const extMimeMap = {
-      ".pdf": "application/pdf",
-      ".png": "image/png",
-      ".jpg": "image/jpeg",
-      ".jpeg": "image/jpeg",
-      ".docx":
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ".xlsx":
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ".pptx":
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    };
-
-    if (
-      extMimeMap[uploadedExt] &&
-      extMimeMap[uploadedExt] !== detectedType.mime
-    ) {
-      await storageService.deleteTempFile(req.file.path);
-
-      throw createError(400, "File extension does not match actual file type");
+      throw error;
     }
 
     const { startup_id, document_type, visibility } = req.body;
