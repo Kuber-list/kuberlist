@@ -611,7 +611,7 @@ export function getGrade(total) {
   if (total >= 85)
     return { grade: "A+", label: "Deal Ready", color: "#059669" };
   if (total >= 70)
-    return { grade: "A", label: "Investor Ready", color: "#677555" };
+    return { grade: "A", label: "Investor Ready", color: "#1A7A4A" };
   if (total >= 55)
     return { grade: "B", label: "Strong Potential", color: "#022440" };
   if (total >= 40) return { grade: "C", label: "Developing", color: "#CEAE5E" };
