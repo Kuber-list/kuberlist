@@ -7,6 +7,18 @@ export const fetchListingData = async (listingId, seekerId = null) => {
     include: {
       capital_seeker: { include: { capitalSeekerProfile: true } },
       documents: { select: { document_type: true } },
+
+      commercial_evidence: {
+        select: {
+          evidence_type: true,
+          count: true,
+          total_value: true,
+          realized_value: true,
+          period_start: true,
+          period_end: true,
+        },
+      },
+
       _count: { select: { interests: true, updates: true, documents: true } },
     },
   });

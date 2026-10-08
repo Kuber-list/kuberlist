@@ -93,6 +93,18 @@ enum PortfolioMilestonePriority {
   CRITICAL
 }
 
+enum TractionUnit {
+  PAYING_CUSTOMERS
+  ACTIVE_USERS
+  ACTIVE_BUYERS
+  ACTIVE_SELLERS
+  ACTIVE_CLIENTS
+  ACTIVE_ACCOUNTS
+  TRANSACTIONS
+  ORDERS
+  OTHER
+}
+
 model User {
   id                                   String                         @id @default(uuid())
   name                                 String
@@ -204,6 +216,16 @@ model StartupListing {
   has_purchase_orders       Boolean                @default(false)
   po_value                  Float?
   po_count                  Int?
+  
+  // V4 Traction inputs
+  revenue_previous_year       Float?
+  traction_unit               TractionUnit @default(PAYING_CUSTOMERS)
+  customers_current           Int?
+  customers_previous          Int?
+  repeat_customers            Int?
+  repeat_orders               Int?
+  recurring_revenue_percent   Float?
+ // Existing credibility fields
   has_government_contract   Boolean                @default(false)
   has_ip                    Boolean                @default(false)
   ip_description            String?
@@ -224,6 +246,30 @@ model StartupListing {
   investments               Investment[]
   secondary_opportunities   SecondaryOpportunity[] @relation("SecondaryOpportunityListing")
   valuations                CompanyValuation[]
+  commercial_evidence       CommercialEvidence[]
+}
+
+model CommercialEvidence {
+  id            String                 @id @default(uuid())
+  listing_id    String
+  listing       StartupListing         @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+
+  evidence_type CommercialEvidenceType
+
+  count         Int?
+  total_value   Float?
+  realized_value Float?
+
+  period_start  DateTime?
+  period_end    DateTime?
+
+  notes         String?
+
+  created_at    DateTime               @default(now())
+  updated_at    DateTime               @updatedAt
+
+  @@index([listing_id])
+  @@index([evidence_type])
 }
 
 model Document {
@@ -294,6 +340,14 @@ enum DiligenceRequestStatus {
   UPLOADED
   UNDER_REVIEW
   COMPLETED
+}
+
+enum CommercialEvidenceType {
+  PURCHASE_ORDER
+  SIGNED_CONTRACT
+  PAID_PILOT
+  LOI
+  OTHER
 }
 
 model DDChecklistTemplate {

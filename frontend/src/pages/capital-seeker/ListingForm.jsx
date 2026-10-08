@@ -54,6 +54,13 @@ export default function ListingForm({ mode = "create" }) {
     funding_ask: "",
     valuation_expectation: "",
     revenue_last_year: "",
+    revenue_previous_year: "",
+    traction_unit: "PAYING_CUSTOMERS",
+    customers_current: "",
+    customers_previous: "",
+    repeat_customers: "",
+    repeat_orders: "",
+    recurring_revenue_percent: "",
     monthly_burn: "",
     requires_nda: false,
     summary: "",
@@ -88,6 +95,14 @@ export default function ListingForm({ mode = "create" }) {
             funding_ask: l.funding_ask || "",
             valuation_expectation: l.valuation_expectation || "",
             revenue_last_year: l.revenue_last_year || "",
+            revenue_previous_year: l.revenue_previous_year || "",
+            traction_unit: l.traction_unit || "PAYING_CUSTOMERS",
+            customers_current: l.customers_current || "",
+            customers_previous: l.customers_previous || "",
+            repeat_customers: l.repeat_customers || "",
+            repeat_orders: l.repeat_orders || "",
+            recurring_revenue_percent: l.recurring_revenue_percent || "",
+
             monthly_burn: l.monthly_burn || "",
             requires_nda: l.requires_nda || false,
             summary: l.summary || "",
@@ -363,25 +378,171 @@ export default function ListingForm({ mode = "create" }) {
         </div>
 
         {/* ── Traction & Purchase Orders ── */}
-        <div className="card space-y-4">
+        <div className="card space-y-5">
           <h3 className="font-display text-sm font-semibold text-navy uppercase tracking-wider pb-3 border-b border-border">
-            Traction & Purchase Orders
+            Traction & Commercial Evidence
             <span className="ml-2 text-gold text-xs normal-case font-normal">
-              +15 pts potential
+              V4 Traction
             </span>
           </h3>
 
+          {/* Revenue history */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Revenue Previous Year (₹)</label>
+              <input
+                type="number"
+                min="0"
+                value={form.revenue_previous_year}
+                onChange={(e) => set("revenue_previous_year", e.target.value)}
+                className="input"
+                placeholder="500000"
+              />
+              {form.revenue_previous_year && (
+                <p className="form-hint text-gold">
+                  ₹{formatIndianNumber(form.revenue_previous_year)} (
+                  {formatMoneyHint(form.revenue_previous_year)})
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="label">Revenue Last Year (₹)</label>
+              <input
+                type="number"
+                min="0"
+                value={form.revenue_last_year}
+                onChange={(e) => set("revenue_last_year", e.target.value)}
+                className="input"
+                placeholder="1000000"
+              />
+              {form.revenue_last_year && (
+                <p className="form-hint text-gold">
+                  ₹{formatIndianNumber(form.revenue_last_year)} (
+                  {formatMoneyHint(form.revenue_last_year)})
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Traction unit */}
           <div>
+            <label className="label">Primary Traction Unit</label>
+            <select
+              value={form.traction_unit}
+              onChange={(e) => set("traction_unit", e.target.value)}
+              className="input"
+            >
+              <option value="PAYING_CUSTOMERS">Paying Customers</option>
+              <option value="ACTIVE_USERS">Active Users</option>
+              <option value="ACTIVE_BUYERS">Active Buyers</option>
+              <option value="ACTIVE_SELLERS">Active Sellers</option>
+              <option value="ACTIVE_CLIENTS">Active Clients</option>
+              <option value="ACTIVE_ACCOUNTS">Active Accounts</option>
+              <option value="TRANSACTIONS">Transactions</option>
+              <option value="ORDERS">Orders</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+
+          {/* Unit traction */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">
+                Current {form.traction_unit === "ORDERS" ? "Orders" : "Units"}
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={form.customers_current}
+                onChange={(e) => set("customers_current", e.target.value)}
+                className="input"
+                placeholder="100"
+              />
+            </div>
+
+            <div>
+              <label className="label">
+                Previous-period{" "}
+                {form.traction_unit === "ORDERS" ? "Orders" : "Units"}
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={form.customers_previous}
+                onChange={(e) => set("customers_previous", e.target.value)}
+                className="input"
+                placeholder="50"
+              />
+            </div>
+          </div>
+
+          {/* Repeatability */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Repeat Customers</label>
+              <input
+                type="number"
+                min="0"
+                value={form.repeat_customers}
+                onChange={(e) => set("repeat_customers", e.target.value)}
+                className="input"
+                placeholder="25"
+              />
+            </div>
+
+            <div>
+              <label className="label">Repeat Orders</label>
+              <input
+                type="number"
+                min="0"
+                value={form.repeat_orders}
+                onChange={(e) => set("repeat_orders", e.target.value)}
+                className="input"
+                placeholder="40"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Recurring Revenue (%)</label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              value={form.recurring_revenue_percent}
+              onChange={(e) => set("recurring_revenue_percent", e.target.value)}
+              className="input"
+              placeholder="60"
+            />
+            <p className="form-hint">
+              Use this when recurring revenue is meaningful for your business
+              model.
+            </p>
+          </div>
+
+          {/* Existing PO evidence */}
+          <div className="pt-3 border-t border-border">
             <label className="label">
               Do you have confirmed Purchase Orders?
             </label>
+
             <div className="flex gap-3 mt-1">
               {[true, false].map((v) => (
                 <button
                   key={String(v)}
                   type="button"
                   onClick={() => set("has_purchase_orders", v)}
-                  className={`px-5 py-2 text-sm font-semibold border transition-all ${form.has_purchase_orders === v ? "border-navy bg-navy/8 text-navy" : "border-border text-muted hover:border-navy/30"}`}
+                  className={`px-5 py-2 text-sm font-semibold border transition-all ${
+                    form.has_purchase_orders
+                      ? v
+                        ? "border-navy bg-navy/8 text-navy"
+                        : "border-border text-muted hover:border-navy/30"
+                      : !v
+                        ? "border-navy bg-navy/8 text-navy"
+                        : "border-border text-muted hover:border-navy/30"
+                  }`}
                 >
                   {v ? "✓ Yes" : "No"}
                 </button>
@@ -408,6 +569,7 @@ export default function ListingForm({ mode = "create" }) {
                   </p>
                 )}
               </div>
+
               <div>
                 <label className="label">Number of POs</label>
                 <input

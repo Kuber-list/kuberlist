@@ -58,22 +58,171 @@ export const fmt = (n) => {
 };
 
 // ── HARD SCORE (60 pts) ──────────────────────────────────────────
-function scoreTraction(listing, updateCount) {
-  let pts = 0;
-  if (listing.has_purchase_orders) {
-    pts += 8;
-    const pov = listing.po_value || 0;
-    if (pov >= 500000) pts += 5;
-    if (pov >= 5000000) pts += 7;
-    if ((listing.po_count || 0) > 3) pts += 3;
+function scoreTraction(listing) {
+  /*
+   * V4 TRACTION — 30 POINTS
+   *
+   * Revenue Traction             8
+   * Growth Traction              7
+   * Customer / Unit Traction     5
+   * Commercial Traction          5
+   * Repeatability & Rev Quality  5
+   */
+
+  let revenueScore = 0;
+  let growthScore = 0;
+  let customerScore = 0;
+  let commercialScore = 0;
+  let repeatabilityScore = 0;
+
+  const currentRevenue = Number(listing.revenue_last_year || 0);
+  const previousRevenue = Number(listing.revenue_previous_year || 0);
+
+  // ============================================================
+  // 1. REVENUE TRACTION — 8 POINTS
+  // ============================================================
+
+  if (currentRevenue > 0) revenueScore += 2;
+  if (currentRevenue >= 1000000) revenueScore += 2; // ₹10L+
+  if (currentRevenue >= 10000000) revenueScore += 2; // ₹1Cr+
+  if (currentRevenue >= 50000000) revenueScore += 2; // ₹5Cr+
+
+  revenueScore = cap(revenueScore, 8);
+
+  // ============================================================
+  // 2. GROWTH TRACTION — 7 POINTS
+  // ============================================================
+
+  let revenueGrowth = null;
+
+  if (previousRevenue > 0 && currentRevenue >= 0) {
+    revenueGrowth =
+      ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+
+    if (revenueGrowth >= 10) growthScore += 1;
+    if (revenueGrowth >= 25) growthScore += 1;
+    if (revenueGrowth >= 50) growthScore += 2;
+    if (revenueGrowth >= 100) growthScore += 2;
+    if (revenueGrowth >= 200) growthScore += 1;
   }
-  const rev = listing.revenue_last_year || 0;
-  if (rev > 0) pts += 3;
-  if (rev >= 1000000) pts += 2;
-  if (rev >= 10000000) pts += 2;
-  if (updateCount > 0) pts += 1;
-  if (updateCount >= 3) pts += 1;
-  return cap(pts, 30);
+
+  growthScore = cap(growthScore, 7);
+
+  // ============================================================
+  // 3. CUSTOMER / UNIT TRACTION — 5 POINTS
+  // ============================================================
+
+  const currentUnits = Number(listing.customers_current || 0);
+  const previousUnits = Number(listing.customers_previous || 0);
+
+  if (currentUnits > 0) customerScore += 1;
+  if (currentUnits >= 10) customerScore += 1;
+  if (currentUnits >= 100) customerScore += 1;
+  if (currentUnits >= 1000) customerScore += 1;
+
+  // Growth in the selected traction unit
+  if (previousUnits > 0 && currentUnits > previousUnits) {
+    customerScore += 1;
+  }
+
+  customerScore = cap(customerScore, 5);
+
+  // ============================================================
+  // 4. COMMERCIAL TRACTION — 5 POINTS
+  // ============================================================
+
+  // Existing PO fields retained for backward compatibility
+  if (listing.has_purchase_orders) {
+    commercialScore += 1;
+
+    const poValue = Number(listing.po_value || 0);
+    const poCount = Number(listing.po_count || 0);
+
+    if (poValue >= 500000) commercialScore += 1;
+    if (poValue >= 5000000) commercialScore += 1;
+    if (poCount >= 3) commercialScore += 1;
+  }
+
+  // New CommercialEvidence records
+  if (Array.isArray(listing.commercial_evidence)) {
+    const evidence = listing.commercial_evidence;
+
+    const hasSignedContract = evidence.some(
+      (e) => e.evidence_type === "SIGNED_CONTRACT",
+    );
+
+    const hasPaidPilot = evidence.some((e) => e.evidence_type === "PAID_PILOT");
+
+    if (hasSignedContract) commercialScore += 1;
+    else if (hasPaidPilot) commercialScore += 1;
+  }
+
+  commercialScore = cap(commercialScore, 5);
+
+  // ============================================================
+  // 5. REPEATABILITY & REVENUE QUALITY — 5 POINTS
+  // ============================================================
+
+  const repeatCustomers = Number(listing.repeat_customers || 0);
+  const repeatOrders = Number(listing.repeat_orders || 0);
+  const recurringRevenuePercent = Number(
+    listing.recurring_revenue_percent || 0,
+  );
+
+  // Repeat customers
+  if (currentUnits > 0 && repeatCustomers > 0) {
+    const repeatCustomerRate = (repeatCustomers / currentUnits) * 100;
+
+    if (repeatCustomerRate >= 10) repeatabilityScore += 1;
+    if (repeatCustomerRate >= 25) repeatabilityScore += 1;
+  }
+
+  // Repeat orders
+  if (repeatOrders > 0) {
+    repeatabilityScore += 1;
+  }
+
+  // Recurring revenue
+  if (recurringRevenuePercent >= 25) repeatabilityScore += 1;
+  if (recurringRevenuePercent >= 60) repeatabilityScore += 1;
+
+  repeatabilityScore = cap(repeatabilityScore, 5);
+
+  return {
+    score: cap(
+      revenueScore +
+        growthScore +
+        customerScore +
+        commercialScore +
+        repeatabilityScore,
+      30,
+    ),
+
+    breakdown: {
+      revenue: revenueScore,
+      growth: growthScore,
+      customer: customerScore,
+      commercial: commercialScore,
+      repeatability: repeatabilityScore,
+    },
+
+    metrics: {
+      revenue_growth_percent:
+        revenueGrowth !== null ? Number(revenueGrowth.toFixed(2)) : null,
+
+      traction_unit: listing.traction_unit || "PAYING_CUSTOMERS",
+
+      current_units: currentUnits,
+      previous_units: previousUnits,
+
+      repeat_customer_rate:
+        currentUnits > 0 && repeatCustomers > 0
+          ? Number(((repeatCustomers / currentUnits) * 100).toFixed(2))
+          : null,
+
+      recurring_revenue_percent: listing.recurring_revenue_percent ?? null,
+    },
+  };
 }
 
 function scoreFinancials(listing) {
@@ -479,7 +628,8 @@ export function scoreListing(
   updateCount = 0,
   prevScore = null,
 ) {
-  const traction_score = scoreTraction(listing, updateCount);
+  const tractionResult = scoreTraction(listing);
+  const traction_score = tractionResult.score;
   const financial_score = scoreFinancials(listing);
   const hard_score = traction_score + financial_score;
 

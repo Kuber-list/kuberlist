@@ -33,6 +33,13 @@ export const createListing = async (req, res, next) => {
       funding_ask,
       valuation_expectation,
       revenue_last_year,
+      revenue_previous_year,
+      traction_unit,
+      customers_current,
+      customers_previous,
+      repeat_customers,
+      repeat_orders,
+      recurring_revenue_percent,
       monthly_burn,
       requires_nda,
       summary,
@@ -64,6 +71,21 @@ export const createListing = async (req, res, next) => {
           : null,
         revenue_last_year: revenue_last_year
           ? parseFloat(revenue_last_year)
+          : null,
+        revenue_previous_year: revenue_previous_year
+          ? parseFloat(revenue_previous_year)
+          : null,
+        traction_unit: traction_unit || "PAYING_CUSTOMERS",
+        customers_current: customers_current
+          ? parseInt(customers_current)
+          : null,
+        customers_previous: customers_previous
+          ? parseInt(customers_previous)
+          : null,
+        repeat_customers: repeat_customers ? parseInt(repeat_customers) : null,
+        repeat_orders: repeat_orders ? parseInt(repeat_orders) : null,
+        recurring_revenue_percent: recurring_revenue_percent
+          ? parseFloat(recurring_revenue_percent)
           : null,
         monthly_burn: monthly_burn ? parseFloat(monthly_burn) : null,
         requires_nda: !!requires_nda,
@@ -147,6 +169,13 @@ export const updateListing = async (req, res, next) => {
       funding_ask,
       valuation_expectation,
       revenue_last_year,
+      revenue_previous_year,
+      traction_unit,
+      customers_current,
+      customers_previous,
+      repeat_customers,
+      repeat_orders,
+      recurring_revenue_percent,
       monthly_burn,
       requires_nda,
       summary,
@@ -174,6 +203,43 @@ export const updateListing = async (req, res, next) => {
         ...(revenue_last_year !== undefined && {
           revenue_last_year: revenue_last_year
             ? parseFloat(revenue_last_year)
+            : null,
+        }),
+        ...(revenue_previous_year !== undefined && {
+          revenue_previous_year: revenue_previous_year
+            ? parseFloat(revenue_previous_year)
+            : null,
+        }),
+
+        ...(traction_unit !== undefined && {
+          traction_unit: traction_unit || "PAYING_CUSTOMERS",
+        }),
+
+        ...(customers_current !== undefined && {
+          customers_current: customers_current
+            ? parseInt(customers_current)
+            : null,
+        }),
+
+        ...(customers_previous !== undefined && {
+          customers_previous: customers_previous
+            ? parseInt(customers_previous)
+            : null,
+        }),
+
+        ...(repeat_customers !== undefined && {
+          repeat_customers: repeat_customers
+            ? parseInt(repeat_customers)
+            : null,
+        }),
+
+        ...(repeat_orders !== undefined && {
+          repeat_orders: repeat_orders ? parseInt(repeat_orders) : null,
+        }),
+
+        ...(recurring_revenue_percent !== undefined && {
+          recurring_revenue_percent: recurring_revenue_percent
+            ? parseFloat(recurring_revenue_percent)
             : null,
         }),
         ...(monthly_burn !== undefined && {
