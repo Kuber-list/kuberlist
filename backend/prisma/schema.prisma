@@ -68,6 +68,12 @@ enum DocumentVisibility {
   INTERESTED_ONLY
 }
 
+enum DocumentSharingScope {
+  GENERAL
+  STANDARD_DD
+  INVESTOR_REQUEST
+}
+
 enum VerificationStatus {
   UPLOADED
   THIRD_PARTY_VERIFIED
@@ -193,39 +199,39 @@ model InvestorProfile {
 }
 
 model StartupListing {
-  id                        String                 @id @default(uuid())
-  capital_seeker_id         String
-  capital_seeker            User                   @relation(fields: [capital_seeker_id], references: [id], onDelete: Cascade)
-  name                      String
-  sector                    String
-  stage                     String
-  entity_type               EntityType             @default(STARTUP)
-  location_city             String?
-  location_country          String                 @default("India")
-  funding_ask               Float?
-  valuation_expectation     Float?
-  revenue_last_year         Float?
-  monthly_burn              Float?
-  summary                   String
-  use_of_funds              String?
-  is_active                 Boolean                @default(true)
-  status                    ListingStatus          @default(DRAFT)
-  rejection_reason          String?
-  view_count                Int                    @default(0)
+  id                    String        @id @default(uuid())
+  capital_seeker_id     String
+  capital_seeker        User          @relation(fields: [capital_seeker_id], references: [id], onDelete: Cascade)
+  name                  String
+  sector                String
+  stage                 String
+  entity_type           EntityType    @default(STARTUP)
+  location_city         String?
+  location_country      String        @default("India")
+  funding_ask           Float?
+  valuation_expectation Float?
+  revenue_last_year     Float?
+  monthly_burn          Float?
+  summary               String
+  use_of_funds          String?
+  is_active             Boolean       @default(true)
+  status                ListingStatus @default(DRAFT)
+  rejection_reason      String?
+  view_count            Int           @default(0)
   // Traction & Credibility fields
-  has_purchase_orders       Boolean                @default(false)
-  po_value                  Float?
-  po_count                  Int?
-  
+  has_purchase_orders   Boolean       @default(false)
+  po_value              Float?
+  po_count              Int?
+
   // V4 Traction inputs
-  revenue_previous_year       Float?
-  traction_unit               TractionUnit @default(PAYING_CUSTOMERS)
-  customers_current           Int?
-  customers_previous          Int?
-  repeat_customers            Int?
-  repeat_orders               Int?
-  recurring_revenue_percent   Float?
- // Existing credibility fields
+  revenue_previous_year     Float?
+  traction_unit             TractionUnit           @default(PAYING_CUSTOMERS)
+  customers_current         Int?
+  customers_previous        Int?
+  repeat_customers          Int?
+  repeat_orders             Int?
+  recurring_revenue_percent Float?
+  // Existing credibility fields
   has_government_contract   Boolean                @default(false)
   has_ip                    Boolean                @default(false)
   ip_description            String?
@@ -250,23 +256,23 @@ model StartupListing {
 }
 
 model CommercialEvidence {
-  id            String                 @id @default(uuid())
-  listing_id    String
-  listing       StartupListing         @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  id         String         @id @default(uuid())
+  listing_id String
+  listing    StartupListing @relation(fields: [listing_id], references: [id], onDelete: Cascade)
 
   evidence_type CommercialEvidenceType
 
-  count         Int?
-  total_value   Float?
+  count          Int?
+  total_value    Float?
   realized_value Float?
 
-  period_start  DateTime?
-  period_end    DateTime?
+  period_start DateTime?
+  period_end   DateTime?
 
-  notes         String?
+  notes String?
 
-  created_at    DateTime               @default(now())
-  updated_at    DateTime               @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([listing_id])
   @@index([evidence_type])
@@ -299,6 +305,7 @@ model Document {
   dd_requirements     DDRequirement[]
   portfolio_documents PortfolioDocument[]
   milestone_documents PortfolioMilestoneDocument[]
+  sharing_scope       DocumentSharingScope         @default(GENERAL)
 
   @@index([startup_id])
   @@index([visibility])
@@ -1093,3 +1100,4 @@ enum SecondaryDocumentRequestStatus {
   DECLINED
   CANCELLED
 }
+

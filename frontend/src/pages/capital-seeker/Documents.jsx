@@ -193,6 +193,15 @@ export default function Documents() {
       setError(err.response?.data?.message || "Delete failed");
     }
   };
+  const viewDocument = async (docId) => {
+    setError("");
+
+    try {
+      await documentAPI.download(docId);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to open document");
+    }
+  };
 
   const publicDocs = docs.filter((d) => d.visibility === "PUBLIC");
 
@@ -713,16 +722,13 @@ function DocumentCard({ d, del, privateMode = false, canDelete = false }) {
           gap-2 flex-wrap
         "
         >
-          <a
-            href={d.file_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="
-              btn-outline btn-xs
-            "
+          <button
+            type="button"
+            onClick={() => viewDocument(d.id)}
+            className="btn-outline btn-xs"
           >
             View
-          </a>
+          </button>
 
           {canDelete && (
             <button

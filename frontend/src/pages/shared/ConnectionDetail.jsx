@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+﻿import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { connectionAPI, messageAPI } from "../../api/index.js";
 import {
@@ -312,7 +312,7 @@ export default function ConnectionDetail() {
     <div className="anim-up">
       <div className="mb-4">
         <Link to="/connections" className="btn-ghost text-sm">
-          ← Back to Pipeline
+                   ← Back to Pipeline
         </Link>
       </div>
 
@@ -577,18 +577,13 @@ export default function ConnectionDetail() {
                           )}
                         </span>
 
-                        <a
-                          href={r.response_document.file_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="
-              bg-navy text-white
-              px-3 py-1.5 rounded-lg
-              text-xs font-medium
-            "
+                        <button
+                          type="button"
+                          onClick={() => documentAPI.download(r.response_document.id)}
+                          className="bg-navy text-white px-3 py-1.5 rounded-lg text-xs font-medium"
                         >
                           View Document
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -785,14 +780,13 @@ export default function ConnectionDetail() {
                   <p className="text-xs text-dim">{doc.document_type}</p>
                 </div>
 
-                <a
-                  href={doc.file_url}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => documentAPI.download(doc.id)}
                   className="btn-outline btn-sm"
                 >
                   View
-                </a>
+                </button>
               </div>
             ))}
           </div>
@@ -933,7 +927,7 @@ export default function ConnectionDetail() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-white w-full max-w-xl rounded-2xl p-6">
             <h2 className="text-lg font-semibold text-navy mb-4">
-              ⚠ Important Safety Notice
+              âš  Important Safety Notice
             </h2>
 
             <div className="space-y-3 text-sm text-muted">
@@ -993,7 +987,7 @@ export default function ConnectionDetail() {
             <div className="space-y-4">
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm">
                 <p className="font-semibold text-amber-800 mb-2">
-                  ⚠ Funding Confirmation Reminder
+                  âš  Funding Confirmation Reminder
                 </p>
 
                 <p className="text-amber-700">

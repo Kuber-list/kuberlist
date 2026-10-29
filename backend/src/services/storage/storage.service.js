@@ -9,16 +9,12 @@ class StorageService {
   /**
    * Upload a file to the configured storage provider.
    */
-  async upload(file) {
-    if (!file) {
-      throw new Error("No file provided for upload");
-    }
+  async upload(file, visibility = "INTERESTED_ONLY") {
+    if (!file) throw new Error("No file provided for upload");
 
     try {
-      return await cloudinaryStorage.upload(file);
+      return await cloudinaryStorage.upload(file, visibility);
     } finally {
-      // Always remove the temporary Multer file,
-      // whether the upload succeeds or fails.
       await this.deleteTempFile(file.path);
     }
   }

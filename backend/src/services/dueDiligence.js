@@ -116,12 +116,9 @@ async function loadDueDiligence(dueDiligenceId, tx = prisma) {
               id: true,
               startup_id: true,
               file_name: true,
-              storage_provider: true,
-              file_url: true,
-              public_id: true,
+
               mime_type: true,
               original_file_name: true,
-              storage_path: true,
               file_size: true,
               document_type: true,
               visibility: true,
@@ -524,12 +521,9 @@ export async function getDueDiligenceByConnection(connectionId) {
               id: true,
               startup_id: true,
               file_name: true,
-              storage_provider: true,
-              file_url: true,
-              public_id: true,
+
               mime_type: true,
               original_file_name: true,
-              storage_path: true,
               file_size: true,
               document_type: true,
               visibility: true,
@@ -898,7 +892,22 @@ export async function attachDocumentToRequirement(requirementId, documentId) {
 
     include: {
       checklist_item: true,
-      document: true,
+      document: {
+        select: {
+          id: true,
+          file_name: true,
+          original_file_name: true,
+          document_type: true,
+          visibility: true,
+          sharing_scope: true,
+          verification_status: true,
+          verification_notes: true,
+          verified_at: true,
+          uploaded_at: true,
+          mime_type: true,
+          file_size: true,
+        },
+      },
       diligence_request: true,
     },
   });

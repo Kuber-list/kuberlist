@@ -177,8 +177,53 @@ export const me = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      include: { capitalSeekerProfile: true, investorProfile: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        profile_image_url: true,
+        is_active: true,
+        created_at: true,
+
+        capitalSeekerProfile: {
+          select: {
+            id: true,
+            entity_type: true,
+            organisation_name: true,
+            linkedin_url: true,
+            experience_summary: true,
+            city: true,
+            country: true,
+          },
+        },
+
+        investorProfile: {
+          select: {
+            id: true,
+            investor_category: true,
+            fund_name: true,
+            aum_range: true,
+            ticket_min: true,
+            ticket_max: true,
+            preferred_sectors: true,
+            preferred_stage: true,
+            preferred_entity_type: true,
+            geography_preference: true,
+            lead_interest: true,
+            co_invest_interest: true,
+            board_seat_interest: true,
+            bio: true,
+            linkedin_url: true,
+          },
+        },
+      },
     });
+
+    if (!user) {
+      throw createError(404, "User not found");
+    }
+
     res.json({ success: true, data: user });
   } catch (err) {
     next(err);

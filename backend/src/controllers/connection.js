@@ -292,7 +292,20 @@ export const getSharedDocuments = async (req, res, next) => {
         connection_id: req.connection.id,
       },
       include: {
-        document: true,
+        document: {
+          select: {
+            id: true,
+            file_name: true,
+            original_file_name: true,
+            document_type: true,
+            visibility: true,
+            sharing_scope: true,
+            verification_status: true,
+            uploaded_at: true,
+            mime_type: true,
+            file_size: true,
+          },
+        },
       },
       orderBy: {
         shared_at: "desc",
@@ -410,6 +423,3 @@ export const overrideNDA = async (req, res, next) => {
     next(err);
   }
 };
-
-
-

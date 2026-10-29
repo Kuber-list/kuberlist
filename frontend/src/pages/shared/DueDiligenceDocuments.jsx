@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { documentAPI } from "../../api";
 import {
   Search,
   FileText,
@@ -319,13 +320,7 @@ function DocumentDrawer({ document, requirement, onClose }) {
                 label="File Size"
                 value={formatFileSize(document.file_size)}
               />
-
-              <DetailItem
-                label="Storage"
-                value={formatStatus(document.storage_provider)}
-              />
-
-              <DetailItem label="MIME Type" value={document.mime_type || "—"} />
+<DetailItem label="MIME Type" value={document.mime_type || "—"} />
             </div>
           </section>
 
@@ -340,18 +335,14 @@ function DocumentDrawer({ document, requirement, onClose }) {
               </div>
             </section>
           )}
-
-          {document.file_url && (
-            <a
-              href={document.file_url}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-primary w-full justify-center"
-            >
-              <ExternalLink size={16} />
-              Open Document
-            </a>
-          )}
+          <button
+            type="button"
+            onClick={() => documentAPI.download(document.id)}
+            className="btn-primary w-full justify-center"
+          >
+            <ExternalLink size={16} />
+            Open Document
+          </button>
         </div>
       </aside>
     </div>

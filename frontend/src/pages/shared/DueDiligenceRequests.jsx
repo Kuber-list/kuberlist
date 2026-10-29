@@ -1,4 +1,5 @@
 import React from "react";
+import { documentAPI } from "../../api/index.js";
 import {
   FileText,
   Upload,
@@ -182,16 +183,15 @@ function RequestCard({
                 status={responseDocument.verification_status}
               />
 
-              {responseDocument.file_url && (
-                <a
-                  href={responseDocument.file_url}
-                  target="_blank"
-                  rel="noreferrer"
+              {responseDocument.id && (
+                <button
+                  type="button"
+                  onClick={() => documentAPI.download(responseDocument.id)}
                   className="inline-flex items-center gap-2 rounded-xl bg-navy px-3 py-2 text-xs font-semibold text-white transition hover:bg-navyD"
                 >
                   <FileText size={14} />
                   View Document
-                </a>
+                </button>
               )}
             </div>
           </div>

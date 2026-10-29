@@ -239,7 +239,6 @@ export const getRequests = async (req, res, next) => {
             verification_status: true,
             verification_notes: true,
             verified_at: true,
-            file_url: true,
             uploaded_at: true,
           },
         },
@@ -261,7 +260,6 @@ export const getRequests = async (req, res, next) => {
                 verification_status: true,
                 verification_notes: true,
                 verified_at: true,
-                file_url: true,
                 uploaded_at: true,
               },
             },
@@ -386,9 +384,18 @@ export const respondToRequest = async (req, res, next) => {
         - recalculate DD scores
     */
     if (request.dd_requirement) {
-      await attachDocumentToRequirement(request.dd_requirement.id, document_id);
-    }
+      await prisma.document.update({
+        where: { id: document_id },
+        data: { sharing_scope: "STANDARD_DD" },
+      });
 
+      await attachDocumentToRequirement(request.dd_requirement.id, document_id);
+    } else {
+      await prisma.document.update({
+        where: { id: document_id },
+        data: { sharing_scope: "INVESTOR_REQUEST" },
+      });
+    }
     /*
       ----------------------------------------------------------
       Update the investor request
@@ -444,7 +451,6 @@ export const respondToRequest = async (req, res, next) => {
             verification_status: true,
             verification_notes: true,
             verified_at: true,
-            file_url: true,
             uploaded_at: true,
           },
         },
@@ -461,7 +467,6 @@ export const respondToRequest = async (req, res, next) => {
                 verification_status: true,
                 verification_notes: true,
                 verified_at: true,
-                file_url: true,
                 uploaded_at: true,
               },
             },

@@ -2,6 +2,25 @@ import prisma from "../utils/prisma.js";
 import { createError } from "../middleware/errorHandler.js";
 import storageService from "../services/storage/storage.service.js";
 import { validateUploadedFile } from "../utils/fileValidation.js";
+
+// Remove internal storage metadata from API response objects.
+const sanitizeSecondaryDealDocument = (document) => {
+  if (!document || typeof document !== "object") return document;
+
+  const { file_url, public_id, storage_path, ...safeDocument } = document;
+  return safeDocument;
+};
+
+const sanitizeSecondaryDealRequest = (request) => {
+  if (!request || typeof request !== "object") return request;
+
+  return {
+    ...request,
+    ...(request.document
+      ? { document: sanitizeSecondaryDealDocument(request.document) }
+      : {}),
+  };
+};
 /**
  * GET /api/secondary-deals/my
  * Get all secondary deals for the logged-in seller or buyer
@@ -325,7 +344,16 @@ export const getSecondaryDealDocuments = async (req, res, next) => {
       where: {
         deal_id: deal.id,
       },
-      include: {
+      select: {
+        id: true,
+        deal_id: true,
+        uploaded_by: true,
+        file_name: true,
+        original_file_name: true,
+        mime_type: true,
+        file_size: true,
+        document_type: true,
+        uploaded_at: true,
         uploader: {
           select: {
             id: true,
@@ -442,7 +470,16 @@ export const getSecondaryDealDocumentRequests = async (req, res, next) => {
           },
         },
         document: {
-          include: {
+          select: {
+            id: true,
+            deal_id: true,
+            uploaded_by: true,
+            file_name: true,
+            original_file_name: true,
+            mime_type: true,
+            file_size: true,
+            document_type: true,
+            uploaded_at: true,
             uploader: {
               select: {
                 id: true,
@@ -606,8 +643,8 @@ export const fulfillSecondaryDealDocumentRequest = async (req, res, next) => {
 
     res.json({
       success: true,
-      data: updatedRequest,
-      document,
+      data: sanitizeSecondaryDealRequest(updatedRequest),
+      document: sanitizeSecondaryDealDocument(document),
       message: "Document request fulfilled successfully",
     });
   } catch (err) {
@@ -681,7 +718,7 @@ export const createSecondaryDealDocument = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      data: document,
+      data: sanitizeSecondaryDealDocument(document),
     });
   } catch (err) {
     next(err);

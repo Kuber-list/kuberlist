@@ -141,7 +141,23 @@ export const getMyListing = async (req, res, next) => {
           },
           orderBy: { created_at: "desc" },
         },
-        documents: true,
+        documents: {
+          select: {
+            id: true,
+            startup_id: true,
+            file_name: true,
+            original_file_name: true,
+            document_type: true,
+            visibility: true,
+            sharing_scope: true,
+            verification_status: true,
+            verification_notes: true,
+            verified_at: true,
+            uploaded_at: true,
+            mime_type: true,
+            file_size: true,
+          },
+        },
         updates: { orderBy: { created_at: "desc" } },
       },
     });
@@ -533,7 +549,22 @@ export const getPublicListing = async (req, res, next) => {
       where: { id: req.params.id, status: "ACTIVE", is_active: true },
       include: {
         ...listingInclude,
-        documents: { where: { visibility: "PUBLIC" } },
+        documents: {
+          where: { visibility: "PUBLIC" },
+          select: {
+            id: true,
+            startup_id: true,
+            file_name: true,
+            original_file_name: true,
+            document_type: true,
+            visibility: true,
+            sharing_scope: true,
+            verification_status: true,
+            uploaded_at: true,
+            mime_type: true,
+            file_size: true,
+          },
+        },
         updates: { orderBy: { created_at: "desc" }, take: 5 },
       },
     });

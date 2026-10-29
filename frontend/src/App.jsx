@@ -158,7 +158,7 @@ function AppRoutes() {
         <Route path="profile" element={<InvestorProfile />} />
       </Route>
 
-      {/* Shared — accessible by CAPITAL_SEEKER and INVESTOR */}
+     {/* Shared — accessible by CAPITAL_SEEKER and INVESTOR */}
       <Route
         path="/connections"
         element={
@@ -203,7 +203,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
-
-
-

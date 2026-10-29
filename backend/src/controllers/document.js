@@ -59,7 +59,8 @@ export const uploadDocument = async (req, res, next) => {
       throw createError(404, "Listing not found");
     }
 
-    const uploaded = await storageService.upload(req.file);
+    const documentVisibility = visibility || "INTERESTED_ONLY";
+    const uploaded = await storageService.upload(req.file, documentVisibility);
 
     const doc = await prisma.document.create({
       data: {
@@ -67,7 +68,7 @@ export const uploadDocument = async (req, res, next) => {
 
         file_name: req.file.originalname,
 
-        file_url: uploaded.storage_path,
+        file_url: uploaded.storage_path || `private:${uploaded.public_id}`,
 
         storage_provider: uploaded.storage_provider,
 
@@ -83,15 +84,16 @@ export const uploadDocument = async (req, res, next) => {
 
         document_type,
 
-        visibility,
-
+        visibility: documentVisibility,
         verification_status: "UPLOADED",
       },
     });
 
+    const { file_url, public_id, storage_path, ...safeDoc } = doc;
+
     res.status(201).json({
       success: true,
-      data: doc,
+      data: safeDoc,
     });
   } catch (err) {
     next(err);
@@ -103,27 +105,36 @@ export const getDocuments = async (req, res, next) => {
     const { startupId } = req.params;
 
     const listing = await prisma.startupListing.findUnique({
-      where: {
-        id: startupId,
-      },
+      where: { id: startupId },
     });
 
     if (!listing) {
       throw createError(404, "Listing not found");
     }
 
+    const isAdmin = req.user?.role === "ADMIN";
     const isOwner = listing.capital_seeker_id === req.user?.id;
 
-    // Owner sees all docs
-    if (isOwner) {
+    // Admin and startup owner can see all documents.
+    if (isAdmin || isOwner) {
       const docs = await prisma.document.findMany({
-        where: {
-          startup_id: startupId,
+        where: { startup_id: startupId },
+        select: {
+          id: true,
+          startup_id: true,
+          file_name: true,
+          original_file_name: true,
+          document_type: true,
+          visibility: true,
+          sharing_scope: true,
+          verification_status: true,
+          verification_notes: true,
+          verified_at: true,
+          uploaded_at: true,
+          mime_type: true,
+          file_size: true,
         },
-
-        orderBy: {
-          uploaded_at: "desc",
-        },
+        orderBy: { uploaded_at: "desc" },
       });
 
       return res.json({
@@ -132,7 +143,6 @@ export const getDocuments = async (req, res, next) => {
       });
     }
 
-    // Investors
     let hasAcceptedInterest = false;
     let interestStatus = null;
 
@@ -147,148 +157,243 @@ export const getDocuments = async (req, res, next) => {
       });
 
       hasAcceptedInterest = interest?.status === "ACCEPTED";
-
       interestStatus = interest?.status || null;
     }
 
-    // Public docs only unless accepted
+    // Investors without accepted interest see public documents only.
+    // Accepted investors see general private documents too.
+    // Standard DD and investor-request documents are excluded here;
+    // those must be authorized through the investor's own DD workspace.
     const docs = await prisma.document.findMany({
       where: {
         startup_id: startupId,
-
-        ...(!hasAcceptedInterest && {
-          visibility: "PUBLIC",
-        }),
+        OR: [
+          { visibility: "PUBLIC" },
+          ...(hasAcceptedInterest
+            ? [
+                {
+                  visibility: "INTERESTED_ONLY",
+                  sharing_scope: "GENERAL",
+                },
+              ]
+            : []),
+        ],
       },
-
-      orderBy: {
-        uploaded_at: "desc",
+      select: {
+        id: true,
+        startup_id: true,
+        file_name: true,
+        original_file_name: true,
+        document_type: true,
+        visibility: true,
+        sharing_scope: true,
+        uploaded_at: true,
+        // Do not return file_url, public_id, or storage_path.
       },
+      orderBy: { uploaded_at: "desc" },
     });
 
-    // Log access for private docs
-    if (
-      req.user?.role === "INVESTOR" &&
-      hasAcceptedInterest &&
-      docs.length > 0
-    ) {
+    // Log private-document listing access for accepted investors.
+    if (req.user?.role === "INVESTOR" && hasAcceptedInterest) {
       const privateDocs = docs.filter(
-        (d) => d.visibility === "INTERESTED_ONLY",
+        (document) => document.visibility === "INTERESTED_ONLY",
       );
 
       if (privateDocs.length > 0) {
-        Promise.all(
-          privateDocs.map((d) =>
-            prisma.documentAccessLog.create({
-              data: {
-                document_id: d.id,
-                investor_id: req.user.id,
-                startup_id: startupId,
-                viewed_at: new Date(),
-              },
-            }),
-          ),
-        ).catch(() => {});
+        await prisma.documentAccessLog.createMany({
+          data: privateDocs.map((document) => ({
+            document_id: document.id,
+            investor_id: req.user.id,
+            startup_id: startupId,
+            viewed_at: new Date(),
+          })),
+        });
       }
     }
 
-    res.json({
+    return res.json({
       success: true,
-
       data: docs,
-
       interest_status: interestStatus,
-
       requires_interest: !hasAcceptedInterest,
     });
   } catch (err) {
     next(err);
   }
 };
+
 export const downloadDocument = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     const document = await prisma.document.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        startup: true,
-      },
+      where: { id },
+      include: { startup: true },
     });
 
     if (!document) {
       throw createError(404, "Document not found");
     }
 
-    // Admin can download anything
+    // Admin can download any document.
     if (req.user.role === "ADMIN") {
-      const url = storageService.getDownloadUrl(document);
-
       return res.json({
         success: true,
-        download_url: url,
+        download_url: storageService.getDownloadUrl(document),
       });
     }
 
-    // Startup owner can download all their documents
+    // Startup owner can download their documents.
     if (document.startup.capital_seeker_id === req.user.id) {
-      const url = storageService.getDownloadUrl(document);
-
       return res.json({
         success: true,
-        download_url: url,
+        download_url: storageService.getDownloadUrl(document),
       });
     }
 
-    // Investors
-    if (req.user.role === "INVESTOR") {
-      // Public document
-      if (document.visibility === "PUBLIC") {
-        const url = storageService.getDownloadUrl(document);
-        return res.redirect(url);
-      }
+    if (req.user.role !== "INVESTOR") {
+      throw createError(403, "Access denied");
+    }
 
-      // Private document requires accepted interest
-      const interest = await prisma.interest.findUnique({
+    // Public documents remain accessible to investors.
+    if (document.visibility === "PUBLIC") {
+      return res.json({
+        success: true,
+        download_url: storageService.getDownloadUrl(document),
+      });
+    }
+
+    // All private documents require accepted interest first.
+    const interest = await prisma.interest.findUnique({
+      where: {
+        investor_id_startup_id: {
+          investor_id: req.user.id,
+          startup_id: document.startup_id,
+        },
+      },
+    });
+
+    if (interest?.status !== "ACCEPTED") {
+      throw createError(
+        403,
+        "You do not have permission to access this document",
+      );
+    }
+
+    // General private documents are available after accepted interest.
+    if (document.sharing_scope === "GENERAL") {
+      // Continue to the access log and signed download URL below.
+    } else if (document.sharing_scope === "STANDARD_DD") {
+      // The investor must have an active connection at the DD stage.
+      const connection = await prisma.connection.findFirst({
         where: {
-          investor_id_startup_id: {
-            investor_id: req.user.id,
-            startup_id: document.startup_id,
+          investor_id: req.user.id,
+          listing_id: document.startup_id,
+          status: "ACTIVE",
+          deal_stage: "DUE_DILIGENCE",
+        },
+        select: {
+          id: true,
+          due_diligence: {
+            select: {
+              id: true,
+              requirements: {
+                where: {
+                  document_id: document.id,
+                },
+                select: {
+                  id: true,
+                },
+              },
+            },
           },
         },
       });
 
-      if (interest?.status !== "ACCEPTED") {
+      if (!connection) {
         throw createError(
           403,
-          "You do not have permission to access this document",
+          "You do not have permission to access standard DD evidence",
         );
       }
 
-      await prisma.documentAccessLog.create({
-        data: {
-          document_id: document.id,
+      // The evidence must be linked to this investor's own DD workspace.
+      // Cross-investor reuse will be handled separately after we establish
+      // a reliable way to identify equivalent checklist requirements.
+      if (!connection.due_diligence?.requirements?.length) {
+        throw createError(
+          403,
+          "This document is not linked to your due-diligence workspace",
+        );
+      }
+    } else if (document.sharing_scope === "INVESTOR_REQUEST") {
+      // Investor-request documents must be explicitly shared with
+      // this investor's own connection.
+      const connection = await prisma.connection.findFirst({
+        where: {
           investor_id: req.user.id,
-          startup_id: document.startup_id,
-          viewed_at: new Date(),
+          listing_id: document.startup_id,
+          status: "ACTIVE",
         },
+        select: { id: true, deal_stage: true },
       });
 
-      const url = storageService.getDownloadUrl(document);
+      if (!connection || connection.deal_stage !== "DUE_DILIGENCE") {
+        throw createError(
+          403,
+          "You do not have permission to access this requested document",
+        );
+      }
 
-      return res.json({
-        success: true,
-        download_url: url,
+      const sharedDocument = await prisma.sharedDocument.findUnique({
+        where: {
+          connection_id_document_id: {
+            connection_id: connection.id,
+            document_id: document.id,
+          },
+        },
+        select: { document_id: true },
       });
+
+      if (!sharedDocument) {
+        throw createError(403, "This document has not been shared with you");
+      }
+
+      const request = await prisma.diligenceRequest.findFirst({
+        where: {
+          startup_id: document.startup_id,
+          investor_id: req.user.id,
+          response_document_id: document.id,
+          status: "UPLOADED",
+        },
+        select: { id: true },
+      });
+
+      if (!request) {
+        throw createError(403, "This document is not assigned to your request");
+      }
+    } else {
+      throw createError(403, "Unrecognized document sharing scope");
     }
 
-    throw createError(403, "Access denied");
+    await prisma.documentAccessLog.create({
+      data: {
+        document_id: document.id,
+        investor_id: req.user.id,
+        startup_id: document.startup_id,
+        viewed_at: new Date(),
+      },
+    });
+
+    return res.json({
+      success: true,
+      download_url: storageService.getDownloadUrl(document),
+    });
   } catch (err) {
     next(err);
   }
 };
+
 export const deleteDocument = async (req, res, next) => {
   try {
     const doc = await prisma.document.findUnique({
@@ -326,9 +431,9 @@ export const deleteDocument = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET ACCESS LOGS
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const getAccessLogs = async (req, res, next) => {
   try {
@@ -417,9 +522,9 @@ export const getAccessLogs = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // VERIFY DOCUMENT
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const verifyDocument = async (req, res, next) => {
   try {
@@ -452,6 +557,23 @@ export const verifyDocument = async (req, res, next) => {
         verified_by: status === "UPLOADED" ? null : req.user.id,
         verified_at: status === "UPLOADED" ? null : new Date(),
       },
+
+      select: {
+        id: true,
+        startup_id: true,
+        file_name: true,
+        original_file_name: true,
+        document_type: true,
+        visibility: true,
+        sharing_scope: true,
+        verification_status: true,
+        verification_notes: true,
+        verified_by: true,
+        verified_at: true,
+        uploaded_at: true,
+        mime_type: true,
+        file_size: true,
+      },
     });
 
     res.json({
@@ -466,9 +588,9 @@ export const verifyDocument = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────
-// ADMIN — GET ALL DOCUMENTS
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ADMIN â€” GET ALL DOCUMENTS
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const getAllDocumentsForAdmin = async (req, res, next) => {
   try {

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { secondaryDealAPI } from "../../api/index.js";
+import { secondaryDealAPI, documentAPI } from "../../api/index.js";
 
 import {
   PageHeader,
@@ -251,7 +251,7 @@ export default function SecondaryDealDetail() {
           className="text-sm text-muted hover:text-navy"
           onClick={() => navigate("/investor/secondary-deals")}
         >
-          ← Back to Secondary Deals
+                   ← Back to Secondary Deals
         </button>
       </div>
 
@@ -315,7 +315,7 @@ export default function SecondaryDealDetail() {
                               : "bg-surface text-muted"
                         }`}
                       >
-                        {isCompleted ? "✓" : index + 1}
+                        {isCompleted ? "âœ“" : index + 1}
                       </div>
 
                       <span className="text-xs font-medium text-center whitespace-nowrap">
@@ -583,15 +583,14 @@ export default function SecondaryDealDetail() {
                     </p>
                   </div>
 
-                  {document.file_url && (
-                    <a
-                      href={document.file_url}
-                      target="_blank"
-                      rel="noreferrer"
+                  {document.id && (
+                    <button
+                      type="button"
+                      onClick={() => documentAPI.download(document.id)}
                       className="btn-outline btn-sm shrink-0"
                     >
                       View
-                    </a>
+                    </button>
                   )}
                 </div>
               ))}

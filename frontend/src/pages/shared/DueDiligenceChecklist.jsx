@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { documentAPI } from "../../api/index.js";
 import {
   Search,
   Filter,
@@ -354,16 +355,15 @@ function DetailDrawer({
                   </div>
                 </div>
 
-                {document.file_url && (
-                  <a
-                    href={document.file_url}
-                    target="_blank"
-                    rel="noreferrer"
+                {document.id && (
+                  <button
+                    type="button"
+                    onClick={() => documentAPI.download(document.id)}
                     className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-navy underline-offset-4 hover:underline"
                   >
                     Open evidence
                     <ChevronRight size={14} />
-                  </a>
+                  </button>
                 )}
               </div>
             ) : (

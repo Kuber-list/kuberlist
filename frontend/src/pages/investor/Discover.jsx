@@ -287,9 +287,12 @@ export default function Discover() {
         />
       ) : (
         <>
-          <div className="space-y-4 stagger">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 stagger">
             {listings.map((l) => (
-              <div key={l.id} className="card-hover group relative">
+              <div
+                key={l.id}
+                className="card-hover group relative flex flex-col h-full"
+              >
                 {/* Save button */}
                 <button
                   onClick={() => toggleSave(l.id)}
@@ -302,12 +305,15 @@ export default function Discover() {
                   />
                 </button>
 
-                <Link to={`/investor/listings/${l.id}`} className="block pr-8">
+                <Link
+                  to={`/investor/listings/${l.id}`}
+                  className="flex flex-col h-full pr-8"
+                >
                   {/* Header row */}
                   <div className="flex items-start gap-3 mb-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h3 className="font-display text-lg font-semibold text-navy group-hover:text-gold transition-colors">
+                        <h3 className="font-display text-lg font-semibold text-navy group-hover:text-gold transition-colors truncate">
                           {l.name}
                         </h3>
                         {l.decision && <DecisionBadge decision={l.decision} />}
@@ -339,6 +345,32 @@ export default function Discover() {
                           <ConfidencePill label={l.confidence_label} />
                         )}
                       </div>
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        {l.total_score !== undefined && (
+                          <div className="border border-gray-100 p-2.5">
+                            <p className="text-[10px] uppercase tracking-wider text-dim">
+                              KuberList Score
+                            </p>
+                            <p className="font-mono font-semibold text-navy text-lg">
+                              {l.total_score}
+                              <span className="text-xs text-dim font-normal">
+                                /100
+                              </span>
+                            </p>
+                          </div>
+                        )}
+
+                        {l.matchScore !== undefined && (
+                          <div className="border border-gold/20 bg-gold/5 p-2.5">
+                            <p className="text-[10px] uppercase tracking-wider text-dim">
+                              Match
+                            </p>
+                            <p className="font-mono font-semibold text-goldD text-lg">
+                              {l.matchScore}%
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -356,7 +388,7 @@ export default function Discover() {
                   {/* Why this deal */}
                   {l.why_this_deal?.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {l.why_this_deal.map((w) => (
+                      {l.why_this_deal.slice(0, 2).map((w) => (
                         <span
                           key={w}
                           className="text-xs bg-navy/8 text-navy px-2.5 py-1 font-medium"
@@ -372,7 +404,7 @@ export default function Discover() {
                   )}
 
                   {/* Score + metrics row */}
-                  <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between flex-wrap gap-2">
                     <div className="flex gap-4 text-xs text-dim flex-wrap">
                       {l.location_city && (
                         <span>
@@ -383,33 +415,24 @@ export default function Discover() {
                           </span>
                         </span>
                       )}
-                      <span>{l._count?.interests || 0} interests</span>
-                      {l.total_score !== undefined && (
-                        <span>
-                          Score:{" "}
-                          <span className="font-mono font-semibold text-navy">
-                            {l.total_score}
-                          </span>
-                          /100
-                        </span>
-                      )}
-                      {l.matchScore !== undefined && (
-                        <span>
-                          Match:{" "}
-                          <span className="font-mono font-semibold text-gold">
-                            {l.matchScore}%
-                          </span>
-                        </span>
-                      )}
                     </div>
                     <span className="font-mono font-semibold text-goldD text-sm">
                       {formatINR(l.funding_ask)}
+                    </span>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-xs text-dim">View opportunity</span>
+
+                    <span className="text-xs font-semibold text-goldD inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                      Open
+                      <ArrowUpRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
                 </Link>
               </div>
             ))}
           </div>
+
           <Pagination
             page={pagination.page}
             pages={pagination.pages}

@@ -106,9 +106,10 @@ const validateInvestmentInput = (body) => {
 export const getPortfolio = async (req, res, next) => {
   try {
     const investments = await prisma.investment.findMany({
-      where: req.user.role === "CAPITAL_SEEKER"
-        ? { listing: { capital_seeker_id: req.user.id } }
-        : { investor_id: req.user.id },
+      where:
+        req.user.role === "CAPITAL_SEEKER"
+          ? { listing: { capital_seeker_id: req.user.id } }
+          : { investor_id: req.user.id },
       include: investmentInclude,
       orderBy: {
         invested_at: "desc",
@@ -131,9 +132,10 @@ export const getPortfolio = async (req, res, next) => {
 export const getPortfolioSummary = async (req, res, next) => {
   try {
     const investments = await prisma.investment.findMany({
-      where: req.user.role === "CAPITAL_SEEKER"
-        ? { listing: { capital_seeker_id: req.user.id } }
-        : { investor_id: req.user.id },
+      where:
+        req.user.role === "CAPITAL_SEEKER"
+          ? { listing: { capital_seeker_id: req.user.id } }
+          : { investor_id: req.user.id },
       select: {
         invested_amount: true,
         current_value_override: true,
@@ -246,7 +248,20 @@ export const getPortfolioWorkspace = async (req, res, next) => {
             },
             supporting_documents: {
               include: {
-                document: true,
+                document: {
+                  select: {
+                    id: true,
+                    file_name: true,
+                    original_file_name: true,
+                    document_type: true,
+                    visibility: true,
+                    sharing_scope: true,
+                    verification_status: true,
+                    uploaded_at: true,
+                    mime_type: true,
+                    file_size: true,
+                  },
+                },
               },
             },
           },
@@ -262,7 +277,20 @@ export const getPortfolioWorkspace = async (req, res, next) => {
             investment_id: investment.id,
           },
           include: {
-            document: true,
+            document: {
+              select: {
+                id: true,
+                file_name: true,
+                original_file_name: true,
+                document_type: true,
+                visibility: true,
+                sharing_scope: true,
+                verification_status: true,
+                uploaded_at: true,
+                mime_type: true,
+                file_size: true,
+              },
+            },
             addedBy: {
               select: {
                 id: true,
@@ -351,7 +379,20 @@ export const getPortfolioDocuments = async (req, res, next) => {
         investment_id: investment.id,
       },
       include: {
-        document: true,
+        document: {
+          select: {
+            id: true,
+            file_name: true,
+            original_file_name: true,
+            document_type: true,
+            visibility: true,
+            sharing_scope: true,
+            verification_status: true,
+            uploaded_at: true,
+            mime_type: true,
+            file_size: true,
+          },
+        },
         addedBy: {
           select: {
             id: true,
@@ -413,20 +454,19 @@ export const addPortfolioDocument = async (req, res, next) => {
     }
 
     if (document.startup_id !== investment.listing_id) {
-      throw createError(
-        403,
-        "Document does not belong to this investment",
-      );
+      throw createError(403, "Document does not belong to this investment");
     }
 
-    const existingPortfolioDocument = await prisma.portfolioDocument.findUnique({
-      where: {
-        investment_id_document_id: {
-          investment_id: investment.id,
-          document_id: document.id,
+    const existingPortfolioDocument = await prisma.portfolioDocument.findUnique(
+      {
+        where: {
+          investment_id_document_id: {
+            investment_id: investment.id,
+            document_id: document.id,
+          },
         },
       },
-    });
+    );
 
     if (existingPortfolioDocument) {
       throw createError(409, "Document is already added to this portfolio");
@@ -440,7 +480,20 @@ export const addPortfolioDocument = async (req, res, next) => {
         category: category?.trim() || "GENERAL",
       },
       include: {
-        document: true,
+        document: {
+          select: {
+            id: true,
+            file_name: true,
+            original_file_name: true,
+            document_type: true,
+            visibility: true,
+            sharing_scope: true,
+            verification_status: true,
+            uploaded_at: true,
+            mime_type: true,
+            file_size: true,
+          },
+        },
         addedBy: {
           select: {
             id: true,
@@ -517,7 +570,20 @@ export const getPortfolioMilestones = async (req, res, next) => {
         },
         supporting_documents: {
           include: {
-            document: true,
+            document: {
+              select: {
+                id: true,
+                file_name: true,
+                original_file_name: true,
+                document_type: true,
+                visibility: true,
+                sharing_scope: true,
+                verification_status: true,
+                uploaded_at: true,
+                mime_type: true,
+                file_size: true,
+              },
+            },
           },
         },
       },
@@ -616,7 +682,20 @@ export const createPortfolioMilestone = async (req, res, next) => {
         },
         supporting_documents: {
           include: {
-            document: true,
+            document: {
+              select: {
+                id: true,
+                file_name: true,
+                original_file_name: true,
+                document_type: true,
+                visibility: true,
+                sharing_scope: true,
+                verification_status: true,
+                uploaded_at: true,
+                mime_type: true,
+                file_size: true,
+              },
+            },
           },
         },
       },
@@ -750,7 +829,20 @@ export const updatePortfolioMilestone = async (req, res, next) => {
         },
         supporting_documents: {
           include: {
-            document: true,
+            document: {
+              select: {
+                id: true,
+                file_name: true,
+                original_file_name: true,
+                document_type: true,
+                visibility: true,
+                sharing_scope: true,
+                verification_status: true,
+                uploaded_at: true,
+                mime_type: true,
+                file_size: true,
+              },
+            },
           },
         },
       },
@@ -1164,10 +1256,7 @@ export const sendPortfolioMessage = async (req, res, next) => {
     }
 
     if (message.length > 5000) {
-      throw createError(
-        400,
-        "Message cannot exceed 5000 characters",
-      );
+      throw createError(400, "Message cannot exceed 5000 characters");
     }
 
     const portfolioMessage = await prisma.portfolioMessage.create({
@@ -1193,9 +1282,7 @@ export const sendPortfolioMessage = async (req, res, next) => {
         : investment.investor_id;
 
     const recipientRole =
-      req.user.id === investment.investor_id
-        ? "CAPITAL_SEEKER"
-        : "INVESTOR";
+      req.user.id === investment.investor_id ? "CAPITAL_SEEKER" : "INVESTOR";
 
     if (recipientId) {
       notifyPortfolioMessageReceived(
@@ -1244,10 +1331,3 @@ export const deleteInvestment = async (req, res, next) => {
     next(err);
   }
 };
-
-
-
-
-
-
-
