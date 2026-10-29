@@ -168,11 +168,26 @@ export const documentAPI = {
   verify: (id, data) => api.patch(`/document/${id}/verify`, data),
 
   adminAll: () => api.get("/document/admin/all"),
-  download: async (id) => {
+ download: async (id) => {
+  const newTab = window.open("about:blank", "_blank");
+
+  if (!newTab) {
+    throw new Error("Please allow pop-ups for KuberList to view documents.");
+  }
+
+  try {
     const { data } = await api.get(`/document/${id}/download`);
 
-    window.open(data.download_url, "_blank");
-  },
+    if (!data?.download_url) {
+      throw new Error("The server did not return a document URL.");
+    }
+
+    newTab.location.href = data.download_url;
+  } catch (error) {
+    newTab.close();
+    throw error;
+  }
+},
 };
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

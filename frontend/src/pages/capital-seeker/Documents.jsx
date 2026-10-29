@@ -407,6 +407,7 @@ export default function Documents() {
                     key={d.id}
                     d={d}
                     del={del}
+                    viewDocument={viewDocument}
                     canDelete={user?.role === "CAPITAL_SEEKER"}
                   />
                 ))}
@@ -447,6 +448,7 @@ export default function Documents() {
                     key={d.id}
                     d={d}
                     del={del}
+                    viewDocument={viewDocument}
                     privateMode
                     canDelete={user?.role === "CAPITAL_SEEKER"}
                   />
@@ -613,7 +615,7 @@ export default function Documents() {
   );
 }
 
-function DocumentCard({ d, del, privateMode = false, canDelete = false }) {
+function DocumentCard({ d, del, viewDocument, privateMode = false, canDelete = false }) {
   return (
     <div
       className={`
