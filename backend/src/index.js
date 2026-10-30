@@ -98,10 +98,22 @@ const uploadLimiter = rateLimit({
     message: "Upload limit reached. Try again later.",
   },
 });
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many password reset attempts. Please try again later.",
+  },
+});
 
 app.use("/api", globalLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
+app.use("/api/auth/forgot-password", passwordResetLimiter);
+app.use("/api/auth/reset-password", passwordResetLimiter);
 app.use("/api/document", uploadLimiter);
 
 // Swagger
@@ -161,7 +173,8 @@ app.use((req, res) =>
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`\n🚀 KuberList API  → http://localhost:${PORT}`);
-  console.log(`📖 Swagger Docs   → http://localhost:${PORT}/api/docs\n`);
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`KuberList API listening on port ${PORT}`);
+  console.log(`Swagger Docs: http://localhost:${PORT}/api/docs`);
 });

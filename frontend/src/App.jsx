@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./hooks/useAuth.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import { LoadingPage } from "./components/ui/index.jsx";
+import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
+import ResetPassword from "./pages/auth/ResetPassword.jsx";
 
 import Landing from "./pages/public/Landing.jsx";
 import Login from "./pages/auth/Login.jsx";
@@ -99,6 +101,10 @@ function AppRoutes() {
         }
       />
 
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+
+      <Route path="/reset-password" element={<ResetPassword />} />
+
       <Route
         path="/seeker"
         element={
@@ -119,8 +125,11 @@ function AppRoutes() {
         <Route path="updates" element={<PostUpdates />} />
         <Route path="score" element={<ScoresHub />} />
         <Route path="access-logs" element={<AccessLogs />} />
-          <Route path="portfolio" element={<PortfolioSeeker />} />
-          <Route path="portfolio/:investmentId" element={<PortfolioInvestmentSeeker />} />
+        <Route path="portfolio" element={<PortfolioSeeker />} />
+        <Route
+          path="portfolio/:investmentId"
+          element={<PortfolioInvestmentSeeker />}
+        />
         <Route path="profile" element={<SeekerProfile />} />
       </Route>
 
@@ -139,10 +148,10 @@ function AppRoutes() {
         <Route path="saved" element={<SavedDeals />} />
         <Route path="interests" element={<SentInterests />} />
         <Route path="portfolio" element={<Portfolio />} />
-          <Route
-            path="portfolio/:investmentId"
-            element={<PortfolioInvestment />}
-          />
+        <Route
+          path="portfolio/:investmentId"
+          element={<PortfolioInvestment />}
+        />
         <Route
           path="secondary-opportunities"
           element={<SecondaryOpportunities />}
@@ -158,7 +167,7 @@ function AppRoutes() {
         <Route path="profile" element={<InvestorProfile />} />
       </Route>
 
-     {/* Shared — accessible by CAPITAL_SEEKER and INVESTOR */}
+      {/* Shared — accessible by CAPITAL_SEEKER and INVESTOR */}
       <Route
         path="/connections"
         element={

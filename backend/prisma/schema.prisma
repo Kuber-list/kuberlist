@@ -127,6 +127,7 @@ model User {
   sentInterests                        Interest[]                     @relation("InvestorInterests")
   savedStartups                        SavedStartup[]
   refreshTokens                        RefreshToken[]
+  passwordResetTokens                  PasswordResetToken[]
   investorConnections                  Connection[]                   @relation("InvestorConnections")
   seekerConnections                    Connection[]                   @relation("SeekerConnections")
   investments                          Investment[]                   @relation("InvestorInvestments")
@@ -160,6 +161,18 @@ model RefreshToken {
   created_at DateTime @default(now())
 
   @@index([user_id])
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  token_hash String   @unique
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  @@index([user_id])
+  @@index([expires_at])
 }
 
 model CapitalSeekerProfile {
@@ -1100,4 +1113,3 @@ enum SecondaryDocumentRequestStatus {
   DECLINED
   CANCELLED
 }
-

@@ -1,6 +1,14 @@
-import { Router } from 'express';
-import { register, login, refresh, logout, me } from '../controllers/auth.js';
-import { protect } from '../middleware/auth.js';
+import { Router } from "express";
+import {
+  register,
+  login,
+  refresh,
+  logout,
+  me,
+  forgotPassword,
+  resetPassword,
+} from "../controllers/auth.js";
+import { protect } from "../middleware/auth.js";
 const r = Router();
 /**
  * @swagger
@@ -24,9 +32,11 @@ const r = Router();
  *       201: { description: User registered }
  *       409: { description: Email already registered }
  */
-r.post('/register', register);
-r.post('/login', login);
-r.post('/refresh', refresh);
-r.post('/logout', logout);
-r.get('/me', protect, me);
+r.post("/register", register);
+r.post("/login", login);
+r.post("/forgot-password", forgotPassword);
+r.post("/reset-password", resetPassword);
+r.post("/refresh", refresh);
+r.post("/logout", logout);
+r.get("/me", protect, me);
 export default r;

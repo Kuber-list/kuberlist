@@ -7,6 +7,7 @@ import {
   verifyRefreshToken,
 } from "../utils/jwt.js";
 import { createError } from "../middleware/errorHandler.js";
+import { Resend } from "resend";
 
 const issueTokens = async (user) => {
   const accessPayload = {
@@ -225,6 +226,213 @@ export const me = async (req, res, next) => {
     }
 
     res.json({ success: true, data: user });
+  } catch (err) {
+    next(err);
+  }
+};
+const passwordResetResend = () =>
+  process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+const PASSWORD_RESET_EXPIRY_MS = 30 * 60 * 1000;
+
+export const forgotPassword = async (req, res, next) => {
+  let user;
+
+  try {
+    const email =
+      typeof req.body.email === "string" ? req.body.email.trim() : "";
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw createError(400, "Enter a valid email address");
+    }
+
+    user = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+        is_active: true,
+        is_system: false,
+      },
+    });
+
+    // Always return the same response for unknown or ineligible accounts.
+    const genericResponse = {
+      success: true,
+      message:
+        "If an eligible account exists for that email, a password-reset link will be sent.",
+    };
+
+    if (!user) {
+      return res.json(genericResponse);
+    }
+
+    const resend = passwordResetResend();
+
+    if (!resend) {
+      console.error("Password reset email is not configured.");
+      return res.json(genericResponse);
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const token_hash = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    const expires_at = new Date(Date.now() + PASSWORD_RESET_EXPIRY_MS);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.passwordResetToken.deleteMany({
+        where: { user_id: user.id },
+      });
+
+      await tx.passwordResetToken.create({
+        data: {
+          token_hash,
+          user_id: user.id,
+          expires_at,
+        },
+      });
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL;
+
+    if (!frontendUrl) {
+      await prisma.passwordResetToken.deleteMany({
+        where: { token_hash },
+      });
+
+      console.error("FRONTEND_URL is not configured for password reset.");
+      return res.json(genericResponse);
+    }
+
+    const resetUrl = new URL("/reset-password", frontendUrl);
+    resetUrl.searchParams.set("token", rawToken);
+
+    try {
+      const result = await resend.emails.send({
+        from: "KuberList <noreply@kuberlist.com>",
+        to: [user.email],
+        subject: "Reset your KuberList password",
+        text: [
+          `Hello ${user.name},`,
+          "",
+          "We received a request to reset your KuberList password.",
+          "",
+          `Use this link within 30 minutes: ${resetUrl.toString()}`,
+          "",
+          "If you did not request a password reset, you can ignore this email.",
+        ].join("\n"),
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;line-height:1.6">
+            <h2>Reset your KuberList password</h2>
+            <p>Hello ${String(user.name).replace(
+              /[&<>"']/g,
+              (c) =>
+                ({
+                  "&": "&amp;",
+                  "<": "&lt;",
+                  ">": "&gt;",
+                  '"': "&quot;",
+                  "'": "&#39;",
+                })[c],
+            )},</p>
+            <p>We received a request to reset your KuberList password.</p>
+            <p>
+              <a href="${resetUrl.toString()}"
+                 style="display:inline-block;background:#022440;color:#ffffff;padding:12px 20px;text-decoration:none;border-radius:5px">
+                Reset password
+              </a>
+            </p>
+            <p>This link expires in 30 minutes and can only be used once.</p>
+            <p>If you did not request this, you can safely ignore this email.</p>
+          </div>
+        `,
+      });
+
+      if (result.error) {
+        throw new Error("Resend rejected the password-reset email.");
+      }
+    } catch (emailError) {
+      await prisma.passwordResetToken.deleteMany({
+        where: { token_hash },
+      });
+
+      console.error(
+        "Password-reset email delivery failed:",
+        emailError?.message || "Unknown email delivery error",
+      );
+    }
+
+    return res.json(genericResponse);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body || {};
+
+    if (typeof token !== "string" || !/^[a-f0-9]{64}$/i.test(token)) {
+      throw createError(400, "This reset link is invalid or expired.");
+    }
+
+    if (typeof password !== "string" || password.length < 8) {
+      throw createError(400, "Password must be at least 8 characters.");
+    }
+
+    if (password.length > 128) {
+      throw createError(400, "Password is too long.");
+    }
+
+    const token_hash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const resetRecord = await prisma.passwordResetToken.findUnique({
+      where: { token_hash },
+    });
+
+    if (!resetRecord || resetRecord.expires_at <= new Date()) {
+      throw createError(400, "This reset link is invalid or expired.");
+    }
+
+    const password_hash = await bcrypt.hash(password, 12);
+
+    await prisma.$transaction(async (tx) => {
+      // Consume the token only if it is still valid.
+      const consumed = await tx.passwordResetToken.deleteMany({
+        where: {
+          id: resetRecord.id,
+          expires_at: { gt: new Date() },
+        },
+      });
+
+      if (consumed.count !== 1) {
+        throw createError(400, "This reset link is invalid or expired.");
+      }
+
+      await tx.user.update({
+        where: { id: resetRecord.user_id },
+        data: { password_hash },
+      });
+
+      // Remove other reset links and revoke refresh tokens.
+      await tx.passwordResetToken.deleteMany({
+        where: { user_id: resetRecord.user_id },
+      });
+
+      await tx.refreshToken.deleteMany({
+        where: { user_id: resetRecord.user_id },
+      });
+    });
+
+    return res.json({
+      success: true,
+      message:
+        "Your password has been reset. Please log in with your new password.",
+    });
   } catch (err) {
     next(err);
   }

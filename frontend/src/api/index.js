@@ -68,6 +68,11 @@ export const authAPI = {
   logout: (rt) => api.post("/auth/logout", { refreshToken: rt }),
 
   me: () => api.get("/auth/me"),
+  forgotPassword: (email) =>
+    axios.post(`${API_BASE_URL}/auth/forgot-password`, { email }),
+
+  resetPassword: (data) =>
+    axios.post(`${API_BASE_URL}/auth/reset-password`, data),
 };
 export const userAPI = {
   uploadProfileImage: (formData) =>
@@ -168,26 +173,26 @@ export const documentAPI = {
   verify: (id, data) => api.patch(`/document/${id}/verify`, data),
 
   adminAll: () => api.get("/document/admin/all"),
- download: async (id) => {
-  const newTab = window.open("about:blank", "_blank");
+  download: async (id) => {
+    const newTab = window.open("about:blank", "_blank");
 
-  if (!newTab) {
-    throw new Error("Please allow pop-ups for KuberList to view documents.");
-  }
-
-  try {
-    const { data } = await api.get(`/document/${id}/download`);
-
-    if (!data?.download_url) {
-      throw new Error("The server did not return a document URL.");
+    if (!newTab) {
+      throw new Error("Please allow pop-ups for KuberList to view documents.");
     }
 
-    newTab.location.href = data.download_url;
-  } catch (error) {
-    newTab.close();
-    throw error;
-  }
-},
+    try {
+      const { data } = await api.get(`/document/${id}/download`);
+
+      if (!data?.download_url) {
+        throw new Error("The server did not return a document URL.");
+      }
+
+      newTab.location.href = data.download_url;
+    } catch (error) {
+      newTab.close();
+      throw error;
+    }
+  },
 };
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -378,8 +383,7 @@ export const portfolioAPI = {
 
   getDocuments: (id) => api.get(`/portfolio/${id}/documents`),
 
-  addDocument: (id, payload) =>
-    api.post(`/portfolio/${id}/documents`, payload),
+  addDocument: (id, payload) => api.post(`/portfolio/${id}/documents`, payload),
 
   removeDocument: (id, documentId) =>
     api.delete(`/portfolio/${id}/documents/${documentId}`),
@@ -481,4 +485,3 @@ export const secondaryDealAPI = {
     ),
 };
 export default api;
-
